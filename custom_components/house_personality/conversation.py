@@ -8,12 +8,13 @@ from typing import Any, Literal
 
 from homeassistant.components import conversation
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_API_KEY, CONF_BASE_URL, CONF_MODEL, CONF_TIMEOUT
+from homeassistant.const import CONF_API_KEY, CONF_MODEL, CONF_TIMEOUT
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import intent
 
 from .const import (
     CONF_ASSISTANT_NAME,
+    CONF_BASE_URL,
     CONF_DEBUG_LOGGING,
     CONF_PERSONALITY_PROMPT,
     CONF_TEMPERATURE,

@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
-from homeassistant.const import CONF_API_KEY, CONF_BASE_URL, CONF_MODEL, CONF_TIMEOUT
+from homeassistant.const import CONF_API_KEY, CONF_MODEL, CONF_TIMEOUT
 
 DOMAIN = "house_personality"
 NAME = "House Personality"
 VERSION = "0.1.0"
 
 CONF_ASSISTANT_NAME = "assistant_name"
+CONF_BASE_URL = "base_url"
 CONF_DEBUG_LOGGING = "debug_logging"
 CONF_PERSONALITY_PROMPT = "personality_prompt"
 CONF_TEMPERATURE = "temperature"
@@ -37,4 +38,3 @@ CONFIG_KEYS = (
     CONF_PERSONALITY_PROMPT,
     CONF_DEBUG_LOGGING,
 )
-

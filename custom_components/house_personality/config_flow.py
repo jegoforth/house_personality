@@ -7,12 +7,11 @@ from typing import Any
 import voluptuous as vol
 
 from homeassistant import config_entries
-from homeassistant.const import CONF_API_KEY, CONF_BASE_URL, CONF_MODEL, CONF_TIMEOUT
+from homeassistant.const import CONF_API_KEY, CONF_MODEL, CONF_TIMEOUT
 from homeassistant.helpers.selector import (
     BooleanSelector,
     NumberSelector,
     NumberSelectorConfig,
-    NumberSelectorMode,
     TextSelector,
     TextSelectorConfig,
     TextSelectorType,
@@ -20,6 +19,7 @@ from homeassistant.helpers.selector import (
 
 from .const import (
     CONF_ASSISTANT_NAME,
+    CONF_BASE_URL,
     CONF_DEBUG_LOGGING,
     CONF_PERSONALITY_PROMPT,
     CONF_TEMPERATURE,
@@ -127,7 +127,7 @@ def _config_schema(defaults: dict[str, Any] | None = None) -> vol.Schema:
             vol.Required(
                 CONF_BASE_URL,
                 default=defaults.get(CONF_BASE_URL, DEFAULT_BASE_URL),
-            ): TextSelector(TextSelectorConfig(type=TextSelectorType.URL)),
+            ): TextSelector(),
             vol.Optional(
                 CONF_API_KEY,
                 default=defaults.get(CONF_API_KEY, ""),
@@ -144,7 +144,6 @@ def _config_schema(defaults: dict[str, Any] | None = None) -> vol.Schema:
                     min=0,
                     max=2,
                     step=0.1,
-                    mode=NumberSelectorMode.BOX,
                 )
             ),
             vol.Required(
@@ -155,7 +154,6 @@ def _config_schema(defaults: dict[str, Any] | None = None) -> vol.Schema:
                     min=1,
                     max=300,
                     step=1,
-                    mode=NumberSelectorMode.BOX,
                 )
             ),
             vol.Required(
