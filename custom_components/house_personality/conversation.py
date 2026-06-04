@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 import time
-from typing import Any
+from typing import Any, Literal
 
 from homeassistant.components import conversation
 from homeassistant.config_entries import ConfigEntry
@@ -48,6 +48,7 @@ class HousePersonalityConversationAgent(conversation.ConversationEntity):
     """House Personality conversation agent."""
 
     _attr_has_entity_name = False
+    _attr_supported_languages = "*"
 
     def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
         """Initialize the conversation agent."""
@@ -60,9 +61,30 @@ class HousePersonalityConversationAgent(conversation.ConversationEntity):
         """Return the configured assistant display name."""
         return _entry_value(self._entry, CONF_ASSISTANT_NAME, DEFAULT_ASSISTANT_NAME)
 
+    @property
+    def supported_languages(self) -> Literal["*"]:
+        """Return the supported conversation languages."""
+        return "*"
+
+    async def _async_handle_message(
+        self,
+        user_input: conversation.ConversationInput,
+        chat_log: conversation.ChatLog,
+    ) -> conversation.ConversationResult:
+        """Handle a conversation message with the current chat log API."""
+        return await self._async_process_message(user_input, chat_log)
+
     async def async_process(
         self,
         user_input: conversation.ConversationInput,
+    ) -> conversation.ConversationResult:
+        """Process a conversation request on older Home Assistant versions."""
+        return await self._async_process_message(user_input)
+
+    async def _async_process_message(
+        self,
+        user_input: conversation.ConversationInput,
+        chat_log: conversation.ChatLog | None = None,
     ) -> conversation.ConversationResult:
         """Process a conversation request."""
         values = _entry_values(self._entry)
@@ -95,9 +117,11 @@ class HousePersonalityConversationAgent(conversation.ConversationEntity):
         )
 
         started = time.monotonic()
+        provider_succeeded = False
         try:
             provider_response = await provider.async_generate_response(messages)
             speech = provider_response.content
+            provider_succeeded = True
             if debug_logging:
                 _LOGGER.debug(
                     "House Personality provider completed in %.2fs",
@@ -110,11 +134,21 @@ class HousePersonalityConversationAgent(conversation.ConversationEntity):
             _LOGGER.exception("Unexpected House Personality conversation failure")
             speech = FRIENDLY_PROVIDER_ERROR
 
+        if provider_succeeded:
+            _add_assistant_response_to_chat_log(chat_log, user_input, speech)
+
         response = intent.IntentResponse(language=user_input.language)
         response.async_set_speech(speech)
         return conversation.ConversationResult(
             response=response,
-            conversation_id=user_input.conversation_id,
+            conversation_id=(
+                chat_log.conversation_id if chat_log else user_input.conversation_id
+            ),
+            continue_conversation=(
+                chat_log.continue_conversation
+                if chat_log
+                else getattr(user_input, "continue_conversation", False)
+            ),
         )
 
 
@@ -129,3 +163,28 @@ def _entry_value(entry: ConfigEntry, key: str, default: Any) -> Any:
     """Return a merged config value."""
     return _entry_values(entry).get(key, default)
 
+
+def _add_assistant_response_to_chat_log(
+    chat_log: conversation.ChatLog | None,
+    user_input: conversation.ConversationInput,
+    speech: str,
+) -> None:
+    """Add assistant content to the chat log when the current API is available."""
+    if chat_log is None:
+        return
+
+    add_content = getattr(chat_log, "async_add_assistant_content_without_tools", None)
+    assistant_content = getattr(conversation, "AssistantContent", None)
+    if add_content is None or assistant_content is None:
+        return
+
+    agent_id = getattr(user_input, "agent_id", None)
+    if agent_id is None:
+        return
+
+    add_content(
+        assistant_content(
+            agent_id=agent_id,
+            content=speech,
+        )
+    )
