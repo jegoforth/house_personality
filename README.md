@@ -24,6 +24,7 @@ This project is intended to be reusable and community-friendly. It does not incl
 - Calls an OpenAI-compatible `/chat/completions` endpoint.
 - Builds prompts from the configured personality prompt, optional entity context, optional speaker identity, optional memory/recall context, and current user message.
 - Returns friendly fallback responses when the provider fails.
+- Provides memory update proposal services for explicit review.
 - Provides diagnostics with secret redaction.
 
 ## Not Implemented Yet
@@ -32,7 +33,6 @@ The first version intentionally does not implement:
 
 - speaker recognition
 - memory writing
-- memory update proposals
 - LLM Vision integration
 - camera analysis
 - provider fallback chains
@@ -102,6 +102,17 @@ House Personality sends the configured personality prompt, current Assist user m
 
 The integration does not store conversation memory and does not write to any memory file. API keys are redacted from diagnostics and are not logged.
 Configured context, identity, and memory entity IDs are also redacted from diagnostics.
+
+Memory proposal services store pending proposal text locally in Home Assistant storage for explicit review. Approving a proposal only marks it approved; it does not write to any external memory system or file.
+
+## Services
+
+House Personality exposes these services:
+
+- `house_personality.create_memory_proposal`: Create a pending memory proposal.
+- `house_personality.list_memory_proposals`: List pending proposals, or all proposals when `include_resolved` is true.
+- `house_personality.approve_memory_proposal`: Mark a proposal as approved without writing it anywhere else.
+- `house_personality.reject_memory_proposal`: Mark a proposal as rejected.
 
 ## Troubleshooting
 

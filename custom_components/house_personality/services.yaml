@@ -1,2 +1,51 @@
-{}
+create_memory_proposal:
+  name: Create memory proposal
+  description: Create a pending memory update proposal. This does not write to any memory destination.
+  fields:
+    content:
+      required: true
+      selector:
+        text:
+          multiline: true
+    title:
+      selector:
+        text:
+    source:
+      selector:
+        text:
+    metadata:
+      selector:
+        object:
 
+list_memory_proposals:
+  name: List memory proposals
+  description: Return pending memory proposals, or all proposals when include_resolved is true.
+  fields:
+    include_resolved:
+      default: false
+      selector:
+        boolean:
+
+approve_memory_proposal:
+  name: Approve memory proposal
+  description: Mark a memory proposal as approved. This does not write to any memory destination.
+  fields:
+    proposal_id:
+      required: true
+      selector:
+        text:
+    reason:
+      selector:
+        text:
+
+reject_memory_proposal:
+  name: Reject memory proposal
+  description: Mark a memory proposal as rejected.
+  fields:
+    proposal_id:
+      required: true
+      selector:
+        text:
+    reason:
+      selector:
+        text:

@@ -8,6 +8,18 @@ DOMAIN = "house_personality"
 NAME = "House Personality"
 VERSION = "0.1.0"
 
+ATTR_CONTENT = "content"
+ATTR_CREATED_AT = "created_at"
+ATTR_METADATA = "metadata"
+ATTR_PROPOSAL = "proposal"
+ATTR_PROPOSAL_ID = "proposal_id"
+ATTR_PROPOSALS = "proposals"
+ATTR_REASON = "reason"
+ATTR_SOURCE = "source"
+ATTR_STATUS = "status"
+ATTR_TITLE = "title"
+ATTR_UPDATED_AT = "updated_at"
+
 CONF_ASSISTANT_NAME = "assistant_name"
 CONF_BASE_URL = "base_url"
 CONF_CONTEXT_ENTITY = "context_entity"
@@ -36,12 +48,30 @@ DEFAULT_RECALL_SERVICE_NAME = "prepare_recall_context"
 DEFAULT_TEMPERATURE = 0.7
 DEFAULT_TIMEOUT = 30
 
+DATA_PROPOSAL_STORE = "proposal_store"
+DATA_SERVICES_REGISTERED = "services_registered"
+
+EVENT_MEMORY_PROPOSAL_CREATED = f"{DOMAIN}_memory_proposal_created"
+EVENT_MEMORY_PROPOSAL_UPDATED = f"{DOMAIN}_memory_proposal_updated"
+
 FRIENDLY_PROVIDER_ERROR = (
     "I could not reach the configured language model provider. "
     "Please check the House Personality provider settings."
 )
 
 REDACTED = "**REDACTED**"
+
+SERVICE_APPROVE_MEMORY_PROPOSAL = "approve_memory_proposal"
+SERVICE_CREATE_MEMORY_PROPOSAL = "create_memory_proposal"
+SERVICE_LIST_MEMORY_PROPOSALS = "list_memory_proposals"
+SERVICE_REJECT_MEMORY_PROPOSAL = "reject_memory_proposal"
+
+STATUS_APPROVED = "approved"
+STATUS_PENDING = "pending"
+STATUS_REJECTED = "rejected"
+
+STORAGE_KEY_MEMORY_PROPOSALS = f"{DOMAIN}.memory_proposals"
+STORAGE_VERSION_MEMORY_PROPOSALS = 1
 
 CONFIG_KEYS = (
     CONF_ASSISTANT_NAME,

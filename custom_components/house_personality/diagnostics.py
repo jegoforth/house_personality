@@ -17,8 +17,10 @@ from .const import (
     CONF_RECALL_LIMIT,
     CONF_RECALL_SERVICE_DOMAIN,
     CONF_RECALL_SERVICE_NAME,
+    DATA_PROPOSAL_STORE,
     DOMAIN,
     REDACTED,
+    STATUS_PENDING,
 )
 
 
@@ -30,12 +32,27 @@ async def async_get_config_entry_diagnostics(
     data = _redact_config(dict(config_entry.data))
     options = _redact_config(dict(config_entry.options))
 
+    proposals = []
+    proposal_store = hass.data.get(DOMAIN, {}).get(DATA_PROPOSAL_STORE)
+    if proposal_store is not None:
+        proposals = await proposal_store.async_list(include_resolved=True)
+
     return {
         "domain": DOMAIN,
         "entry": {
             "title": config_entry.title,
             "data": data,
             "options": options,
+        },
+        "memory_proposals": {
+            "total": len(proposals),
+            "pending": len(
+                [
+                    proposal
+                    for proposal in proposals
+                    if proposal.status == STATUS_PENDING
+                ]
+            ),
         },
     }
 
