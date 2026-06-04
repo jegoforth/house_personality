@@ -19,9 +19,10 @@ This project is intended to be reusable and community-friendly. It does not incl
   - optional context entity
   - optional identity entity
   - optional memory entity
+  - optional Voice Assist Recall service adapter
   - debug logging
 - Calls an OpenAI-compatible `/chat/completions` endpoint.
-- Builds prompts from the configured personality prompt, optional entity context, optional speaker identity, optional memory entity, and current user message.
+- Builds prompts from the configured personality prompt, optional entity context, optional speaker identity, optional memory/recall context, and current user message.
 - Returns friendly fallback responses when the provider fails.
 - Provides diagnostics with secret redaction.
 
@@ -30,7 +31,6 @@ This project is intended to be reusable and community-friendly. It does not incl
 The first version intentionally does not implement:
 
 - speaker recognition
-- Voice Assist Recall native integration
 - memory writing
 - memory update proposals
 - LLM Vision integration
@@ -74,6 +74,11 @@ The UI config flow asks for:
 - **Context entity**: Optional entity whose state and attributes are included as home context.
 - **Identity entity**: Optional entity whose state is included as the likely speaker identity.
 - **Memory entity**: Optional entity whose state and attributes are included as read-only memory context.
+- **Use Voice Assist Recall**: Optional read-only recall lookup through a prompt-safe Recall service.
+- **Recall service domain**: Service domain for the recall adapter. The current default is `conversation_memory`.
+- **Recall service name**: Service name for the recall adapter. The current default is `prepare_recall_context`.
+- **Recall result limit**: Maximum number of relevant recall items requested from the service.
+- **Include supporting recall turns**: Whether the Recall service may include supporting raw turns when it prepares context.
 - **Debug logging**: Adds operational debug logs without logging API keys or full prompts.
 
 ## Provider Setup
@@ -93,7 +98,7 @@ Examples:
 
 ## Privacy Notes
 
-House Personality sends the configured personality prompt, current Assist user message, and any configured context, identity, or memory entity data to the configured provider. Context and memory entity state and attributes may contain personal home information. Identity entity state may identify a person if you configure it that way.
+House Personality sends the configured personality prompt, current Assist user message, and any configured context, identity, memory entity, or relevant Voice Assist Recall data to the configured provider. Context, memory, and recall content may contain personal home information. Identity entity state may identify a person if you configure it that way.
 
 The integration does not store conversation memory and does not write to any memory file. API keys are redacted from diagnostics and are not logged.
 Configured context, identity, and memory entity IDs are also redacted from diagnostics.
@@ -104,6 +109,7 @@ Configured context, identity, and memory entity IDs are also redacted from diagn
 - Confirm the configured model is available on the provider.
 - Confirm the API key is valid if the provider requires one.
 - If context, identity, or memory is missing, confirm the configured entities exist and are not `unknown` or `unavailable`.
+- If recall is missing, confirm the configured service exists. For the current Voice Assist Recall project, use `conversation_memory.prepare_recall_context`.
 - Increase the timeout for slower local models.
 - Enable debug logging in the integration options for operational details.
 - Check Home Assistant logs for provider error summaries.

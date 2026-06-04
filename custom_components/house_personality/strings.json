@@ -16,6 +16,11 @@
           "context_entity": "Context entity",
           "identity_entity": "Identity entity",
           "memory_entity": "Memory entity",
+          "recall_enabled": "Use Voice Assist Recall",
+          "recall_service_domain": "Recall service domain",
+          "recall_service_name": "Recall service name",
+          "recall_limit": "Recall result limit",
+          "recall_include_turns": "Include supporting recall turns",
           "debug_logging": "Debug logging"
         }
       }
@@ -44,6 +49,11 @@
           "context_entity": "Context entity",
           "identity_entity": "Identity entity",
           "memory_entity": "Memory entity",
+          "recall_enabled": "Use Voice Assist Recall",
+          "recall_service_domain": "Recall service domain",
+          "recall_service_name": "Recall service name",
+          "recall_limit": "Recall result limit",
+          "recall_include_turns": "Include supporting recall turns",
           "debug_logging": "Debug logging"
         }
       }

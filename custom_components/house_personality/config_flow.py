@@ -26,11 +26,19 @@ from .const import (
     CONF_IDENTITY_ENTITY,
     CONF_MEMORY_ENTITY,
     CONF_PERSONALITY_PROMPT,
+    CONF_RECALL_ENABLED,
+    CONF_RECALL_INCLUDE_TURNS,
+    CONF_RECALL_LIMIT,
+    CONF_RECALL_SERVICE_DOMAIN,
+    CONF_RECALL_SERVICE_NAME,
     CONF_TEMPERATURE,
     DEFAULT_ASSISTANT_NAME,
     DEFAULT_BASE_URL,
     DEFAULT_MODEL,
     DEFAULT_PERSONALITY_PROMPT,
+    DEFAULT_RECALL_LIMIT,
+    DEFAULT_RECALL_SERVICE_DOMAIN,
+    DEFAULT_RECALL_SERVICE_NAME,
     DEFAULT_TEMPERATURE,
     DEFAULT_TIMEOUT,
     DOMAIN,
@@ -180,6 +188,38 @@ def _config_schema(defaults: dict[str, Any] | None = None) -> vol.Schema:
                 default=defaults.get(CONF_MEMORY_ENTITY, ""),
             ): EntitySelector(),
             vol.Required(
+                CONF_RECALL_ENABLED,
+                default=defaults.get(CONF_RECALL_ENABLED, False),
+            ): BooleanSelector(),
+            vol.Required(
+                CONF_RECALL_SERVICE_DOMAIN,
+                default=defaults.get(
+                    CONF_RECALL_SERVICE_DOMAIN,
+                    DEFAULT_RECALL_SERVICE_DOMAIN,
+                ),
+            ): TextSelector(),
+            vol.Required(
+                CONF_RECALL_SERVICE_NAME,
+                default=defaults.get(
+                    CONF_RECALL_SERVICE_NAME,
+                    DEFAULT_RECALL_SERVICE_NAME,
+                ),
+            ): TextSelector(),
+            vol.Required(
+                CONF_RECALL_LIMIT,
+                default=defaults.get(CONF_RECALL_LIMIT, DEFAULT_RECALL_LIMIT),
+            ): NumberSelector(
+                NumberSelectorConfig(
+                    min=1,
+                    max=10,
+                    step=1,
+                )
+            ),
+            vol.Required(
+                CONF_RECALL_INCLUDE_TURNS,
+                default=defaults.get(CONF_RECALL_INCLUDE_TURNS, False),
+            ): BooleanSelector(),
+            vol.Required(
                 CONF_DEBUG_LOGGING,
                 default=defaults.get(CONF_DEBUG_LOGGING, False),
             ): BooleanSelector(),
@@ -200,6 +240,11 @@ def _normalize_user_input(user_input: dict[str, Any]) -> dict[str, Any]:
         CONF_CONTEXT_ENTITY: _clean_optional_text(user_input.get(CONF_CONTEXT_ENTITY)),
         CONF_IDENTITY_ENTITY: _clean_optional_text(user_input.get(CONF_IDENTITY_ENTITY)),
         CONF_MEMORY_ENTITY: _clean_optional_text(user_input.get(CONF_MEMORY_ENTITY)),
+        CONF_RECALL_ENABLED: bool(user_input[CONF_RECALL_ENABLED]),
+        CONF_RECALL_SERVICE_DOMAIN: user_input[CONF_RECALL_SERVICE_DOMAIN].strip(),
+        CONF_RECALL_SERVICE_NAME: user_input[CONF_RECALL_SERVICE_NAME].strip(),
+        CONF_RECALL_LIMIT: int(user_input[CONF_RECALL_LIMIT]),
+        CONF_RECALL_INCLUDE_TURNS: bool(user_input[CONF_RECALL_INCLUDE_TURNS]),
         CONF_DEBUG_LOGGING: bool(user_input[CONF_DEBUG_LOGGING]),
     }
 
@@ -212,6 +257,8 @@ def _validate_user_input(user_input: dict[str, Any]) -> dict[str, str]:
         CONF_BASE_URL,
         CONF_MODEL,
         CONF_PERSONALITY_PROMPT,
+        CONF_RECALL_SERVICE_DOMAIN,
+        CONF_RECALL_SERVICE_NAME,
     )
     for field in required_text_fields:
         if not str(user_input.get(field, "")).strip():

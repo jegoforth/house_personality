@@ -13,6 +13,10 @@ from .const import (
     CONF_CONTEXT_ENTITY,
     CONF_IDENTITY_ENTITY,
     CONF_MEMORY_ENTITY,
+    CONF_RECALL_INCLUDE_TURNS,
+    CONF_RECALL_LIMIT,
+    CONF_RECALL_SERVICE_DOMAIN,
+    CONF_RECALL_SERVICE_NAME,
     DOMAIN,
     REDACTED,
 )
@@ -44,6 +48,13 @@ def _redact_config(values: dict[str, Any]) -> dict[str, Any]:
             redacted[key] = REDACTED if value else ""
         elif key in {CONF_CONTEXT_ENTITY, CONF_IDENTITY_ENTITY, CONF_MEMORY_ENTITY}:
             redacted[key] = REDACTED if value else ""
+        elif key in {
+            CONF_RECALL_SERVICE_DOMAIN,
+            CONF_RECALL_SERVICE_NAME,
+            CONF_RECALL_LIMIT,
+            CONF_RECALL_INCLUDE_TURNS,
+        }:
+            redacted[key] = value
         elif key in CONFIG_KEYS:
             redacted[key] = value
         else:

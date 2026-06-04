@@ -20,6 +20,11 @@ from .const import (
     CONF_IDENTITY_ENTITY,
     CONF_MEMORY_ENTITY,
     CONF_PERSONALITY_PROMPT,
+    CONF_RECALL_ENABLED,
+    CONF_RECALL_INCLUDE_TURNS,
+    CONF_RECALL_LIMIT,
+    CONF_RECALL_SERVICE_DOMAIN,
+    CONF_RECALL_SERVICE_NAME,
     CONF_TEMPERATURE,
     DEFAULT_ASSISTANT_NAME,
     DEFAULT_BASE_URL,
@@ -28,6 +33,10 @@ from .const import (
     DEFAULT_MEMORY_MAX_CHARS,
     DEFAULT_MODEL,
     DEFAULT_PERSONALITY_PROMPT,
+    DEFAULT_RECALL_LIMIT,
+    DEFAULT_RECALL_MAX_CHARS,
+    DEFAULT_RECALL_SERVICE_DOMAIN,
+    DEFAULT_RECALL_SERVICE_NAME,
     DEFAULT_TEMPERATURE,
     DEFAULT_TIMEOUT,
     FRIENDLY_PROVIDER_ERROR,
@@ -39,7 +48,7 @@ from .context.prompt_builder import (
     describe_prompt_sections,
 )
 from .identity import async_get_entity_identity
-from .memory import async_get_entity_memory
+from .memory import async_get_entity_memory, async_get_recall_memory
 from .providers import OpenAICompatibleProvider, ProviderError
 
 _LOGGER = logging.getLogger(__name__)
@@ -115,6 +124,28 @@ class HousePersonalityConversationAgent(conversation.ConversationEntity):
             values.get(CONF_MEMORY_ENTITY),
             max_chars=DEFAULT_MEMORY_MAX_CHARS,
         )
+        recall_result = await async_get_recall_memory(
+            self._hass,
+            enabled=bool(values.get(CONF_RECALL_ENABLED, False)),
+            service_domain=values.get(
+                CONF_RECALL_SERVICE_DOMAIN,
+                DEFAULT_RECALL_SERVICE_DOMAIN,
+            ),
+            service_name=values.get(
+                CONF_RECALL_SERVICE_NAME,
+                DEFAULT_RECALL_SERVICE_NAME,
+            ),
+            query=user_message,
+            speaker_id=identity_result.speaker,
+            conversation_id=user_input.conversation_id,
+            limit=int(values.get(CONF_RECALL_LIMIT, DEFAULT_RECALL_LIMIT)),
+            include_turns=bool(values.get(CONF_RECALL_INCLUDE_TURNS, False)),
+            max_chars=DEFAULT_RECALL_MAX_CHARS,
+        )
+        memory_context = _combine_memory_contexts(
+            entity_memory=memory_result.content,
+            recall_memory=recall_result.content,
+        )
 
         prompt_context = PromptContext(
             personality_prompt=values.get(
@@ -124,7 +155,7 @@ class HousePersonalityConversationAgent(conversation.ConversationEntity):
             user_message=user_message,
             household_context=context_result.content,
             speaker_identity=identity_result.speaker,
-            memory_context=memory_result.content,
+            memory_context=memory_context,
         )
         messages = build_chat_messages(prompt_context)
 
@@ -150,6 +181,14 @@ class HousePersonalityConversationAgent(conversation.ConversationEntity):
                 values.get(CONF_MEMORY_ENTITY) or None,
                 memory_result.included,
                 memory_result.reason,
+            )
+            _LOGGER.debug(
+                "House Personality recall status: enabled=%s service=%s.%s included=%s reason=%s",
+                bool(values.get(CONF_RECALL_ENABLED, False)),
+                values.get(CONF_RECALL_SERVICE_DOMAIN, DEFAULT_RECALL_SERVICE_DOMAIN),
+                values.get(CONF_RECALL_SERVICE_NAME, DEFAULT_RECALL_SERVICE_NAME),
+                recall_result.included,
+                recall_result.reason,
             )
 
         provider = OpenAICompatibleProvider(
@@ -208,6 +247,23 @@ def _entry_values(entry: ConfigEntry) -> dict[str, Any]:
 def _entry_value(entry: ConfigEntry, key: str, default: Any) -> Any:
     """Return a merged config value."""
     return _entry_values(entry).get(key, default)
+
+
+def _combine_memory_contexts(
+    *,
+    entity_memory: str | None,
+    recall_memory: str | None,
+) -> str | None:
+    """Combine optional memory sources for the prompt."""
+    sections: list[str] = []
+    if entity_memory:
+        sections.append(f"Configured memory entity:\n{entity_memory}")
+    if recall_memory:
+        sections.append(f"Voice Assist Recall:\n{recall_memory}")
+
+    if not sections:
+        return None
+    return "\n\n".join(sections)
 
 
 def _add_assistant_response_to_chat_log(
