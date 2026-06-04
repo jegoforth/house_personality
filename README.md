@@ -16,9 +16,11 @@ This project is intended to be reusable and community-friendly. It does not incl
   - temperature
   - timeout
   - personality prompt
+  - optional context entity
+  - optional identity entity
   - debug logging
 - Calls an OpenAI-compatible `/chat/completions` endpoint.
-- Builds prompts from the configured personality prompt and current user message.
+- Builds prompts from the configured personality prompt, optional entity context, optional speaker identity, and current user message.
 - Returns friendly fallback responses when the provider fails.
 - Provides diagnostics with secret redaction.
 
@@ -68,6 +70,8 @@ The UI config flow asks for:
 - **Temperature**: Sampling temperature.
 - **Timeout**: Provider request timeout in seconds.
 - **Personality prompt**: System prompt that defines assistant behavior.
+- **Context entity**: Optional entity whose state and attributes are included as home context.
+- **Identity entity**: Optional entity whose state is included as the likely speaker identity.
 - **Debug logging**: Adds operational debug logs without logging API keys or full prompts.
 
 ## Provider Setup
@@ -87,15 +91,17 @@ Examples:
 
 ## Privacy Notes
 
-House Personality sends the configured personality prompt and the current Assist user message to the configured provider. In this phase it does not read entity context, speaker identity, memory, or camera data.
+House Personality sends the configured personality prompt, current Assist user message, and any configured context or identity entity data to the configured provider. Context entity state and attributes may contain personal home information. Identity entity state may identify a person if you configure it that way.
 
 The integration does not store conversation memory and does not write to any memory file. API keys are redacted from diagnostics and are not logged.
+Configured context and identity entity IDs are also redacted from diagnostics.
 
 ## Troubleshooting
 
 - Confirm the provider base URL points to an OpenAI-compatible chat completions endpoint.
 - Confirm the configured model is available on the provider.
 - Confirm the API key is valid if the provider requires one.
+- If context or identity is missing, confirm the configured entities exist and are not `unknown` or `unavailable`.
 - Increase the timeout for slower local models.
 - Enable debug logging in the integration options for operational details.
 - Check Home Assistant logs for provider error summaries.
@@ -110,4 +116,3 @@ The integration does not store conversation memory and does not write to any mem
 - Phase 7: advanced provider configuration.
 - Phase 8: tests, diagnostics hardening, and release validation.
 - Phase 9: public release readiness.
-

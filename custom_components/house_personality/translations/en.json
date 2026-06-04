@@ -13,6 +13,8 @@
           "temperature": "Temperature",
           "timeout": "Timeout",
           "personality_prompt": "Personality prompt",
+          "context_entity": "Context entity",
+          "identity_entity": "Identity entity",
           "debug_logging": "Debug logging"
         }
       }
@@ -38,10 +40,11 @@
           "temperature": "Temperature",
           "timeout": "Timeout",
           "personality_prompt": "Personality prompt",
+          "context_entity": "Context entity",
+          "identity_entity": "Identity entity",
           "debug_logging": "Debug logging"
         }
       }
     }
   }
 }
-

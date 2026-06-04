@@ -15,22 +15,28 @@ from homeassistant.helpers import intent
 from .const import (
     CONF_ASSISTANT_NAME,
     CONF_BASE_URL,
+    CONF_CONTEXT_ENTITY,
     CONF_DEBUG_LOGGING,
+    CONF_IDENTITY_ENTITY,
     CONF_PERSONALITY_PROMPT,
     CONF_TEMPERATURE,
     DEFAULT_ASSISTANT_NAME,
     DEFAULT_BASE_URL,
+    DEFAULT_CONTEXT_MAX_CHARS,
+    DEFAULT_IDENTITY_MAX_CHARS,
     DEFAULT_MODEL,
     DEFAULT_PERSONALITY_PROMPT,
     DEFAULT_TEMPERATURE,
     DEFAULT_TIMEOUT,
     FRIENDLY_PROVIDER_ERROR,
 )
+from .context.entity_context import async_get_entity_context
 from .context.prompt_builder import (
     PromptContext,
     build_chat_messages,
     describe_prompt_sections,
 )
+from .identity import async_get_entity_identity
 from .providers import OpenAICompatibleProvider, ProviderError
 
 _LOGGER = logging.getLogger(__name__)
@@ -91,6 +97,16 @@ class HousePersonalityConversationAgent(conversation.ConversationEntity):
         values = _entry_values(self._entry)
         debug_logging = bool(values.get(CONF_DEBUG_LOGGING, False))
         user_message = user_input.text or ""
+        context_result = await async_get_entity_context(
+            self._hass,
+            values.get(CONF_CONTEXT_ENTITY),
+            max_chars=DEFAULT_CONTEXT_MAX_CHARS,
+        )
+        identity_result = await async_get_entity_identity(
+            self._hass,
+            values.get(CONF_IDENTITY_ENTITY),
+            max_chars=DEFAULT_IDENTITY_MAX_CHARS,
+        )
 
         prompt_context = PromptContext(
             personality_prompt=values.get(
@@ -98,6 +114,8 @@ class HousePersonalityConversationAgent(conversation.ConversationEntity):
                 DEFAULT_PERSONALITY_PROMPT,
             ),
             user_message=user_message,
+            household_context=context_result.content,
+            speaker_identity=identity_result.speaker,
         )
         messages = build_chat_messages(prompt_context)
 
@@ -105,6 +123,18 @@ class HousePersonalityConversationAgent(conversation.ConversationEntity):
             _LOGGER.debug(
                 "Built House Personality prompt sections: %s",
                 describe_prompt_sections(prompt_context),
+            )
+            _LOGGER.debug(
+                "House Personality context entity status: entity=%s included=%s reason=%s",
+                values.get(CONF_CONTEXT_ENTITY) or None,
+                context_result.included,
+                context_result.reason,
+            )
+            _LOGGER.debug(
+                "House Personality identity entity status: entity=%s included=%s reason=%s",
+                values.get(CONF_IDENTITY_ENTITY) or None,
+                identity_result.included,
+                identity_result.reason,
             )
 
         provider = OpenAICompatibleProvider(

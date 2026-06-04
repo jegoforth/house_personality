@@ -8,7 +8,13 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_API_KEY
 from homeassistant.core import HomeAssistant
 
-from .const import CONFIG_KEYS, DOMAIN, REDACTED
+from .const import (
+    CONFIG_KEYS,
+    CONF_CONTEXT_ENTITY,
+    CONF_IDENTITY_ENTITY,
+    DOMAIN,
+    REDACTED,
+)
 
 
 async def async_get_config_entry_diagnostics(
@@ -35,9 +41,10 @@ def _redact_config(values: dict[str, Any]) -> dict[str, Any]:
     for key, value in values.items():
         if key == CONF_API_KEY:
             redacted[key] = REDACTED if value else ""
+        elif key in {CONF_CONTEXT_ENTITY, CONF_IDENTITY_ENTITY}:
+            redacted[key] = REDACTED if value else ""
         elif key in CONFIG_KEYS:
             redacted[key] = value
         else:
             redacted[key] = REDACTED
     return redacted
-

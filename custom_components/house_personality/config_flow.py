@@ -10,6 +10,7 @@ from homeassistant import config_entries
 from homeassistant.const import CONF_API_KEY, CONF_MODEL, CONF_TIMEOUT
 from homeassistant.helpers.selector import (
     BooleanSelector,
+    EntitySelector,
     NumberSelector,
     NumberSelectorConfig,
     TextSelector,
@@ -20,7 +21,9 @@ from homeassistant.helpers.selector import (
 from .const import (
     CONF_ASSISTANT_NAME,
     CONF_BASE_URL,
+    CONF_CONTEXT_ENTITY,
     CONF_DEBUG_LOGGING,
+    CONF_IDENTITY_ENTITY,
     CONF_PERSONALITY_PROMPT,
     CONF_TEMPERATURE,
     DEFAULT_ASSISTANT_NAME,
@@ -163,6 +166,14 @@ def _config_schema(defaults: dict[str, Any] | None = None) -> vol.Schema:
                     DEFAULT_PERSONALITY_PROMPT,
                 ),
             ): TextSelector(TextSelectorConfig(multiline=True)),
+            vol.Optional(
+                CONF_CONTEXT_ENTITY,
+                default=defaults.get(CONF_CONTEXT_ENTITY, ""),
+            ): EntitySelector(),
+            vol.Optional(
+                CONF_IDENTITY_ENTITY,
+                default=defaults.get(CONF_IDENTITY_ENTITY, ""),
+            ): EntitySelector(),
             vol.Required(
                 CONF_DEBUG_LOGGING,
                 default=defaults.get(CONF_DEBUG_LOGGING, False),
@@ -181,6 +192,8 @@ def _normalize_user_input(user_input: dict[str, Any]) -> dict[str, Any]:
         CONF_TEMPERATURE: float(user_input[CONF_TEMPERATURE]),
         CONF_TIMEOUT: int(user_input[CONF_TIMEOUT]),
         CONF_PERSONALITY_PROMPT: user_input[CONF_PERSONALITY_PROMPT].strip(),
+        CONF_CONTEXT_ENTITY: _clean_optional_text(user_input.get(CONF_CONTEXT_ENTITY)),
+        CONF_IDENTITY_ENTITY: _clean_optional_text(user_input.get(CONF_IDENTITY_ENTITY)),
         CONF_DEBUG_LOGGING: bool(user_input[CONF_DEBUG_LOGGING]),
     }
 
@@ -199,3 +212,10 @@ def _validate_user_input(user_input: dict[str, Any]) -> dict[str, str]:
             errors[field] = "required"
 
     return errors
+
+
+def _clean_optional_text(value: Any) -> str:
+    """Normalize optional text values."""
+    if value is None:
+        return ""
+    return str(value).strip()
