@@ -18,12 +18,14 @@ from .const import (
     CONF_CONTEXT_ENTITY,
     CONF_DEBUG_LOGGING,
     CONF_IDENTITY_ENTITY,
+    CONF_MEMORY_ENTITY,
     CONF_PERSONALITY_PROMPT,
     CONF_TEMPERATURE,
     DEFAULT_ASSISTANT_NAME,
     DEFAULT_BASE_URL,
     DEFAULT_CONTEXT_MAX_CHARS,
     DEFAULT_IDENTITY_MAX_CHARS,
+    DEFAULT_MEMORY_MAX_CHARS,
     DEFAULT_MODEL,
     DEFAULT_PERSONALITY_PROMPT,
     DEFAULT_TEMPERATURE,
@@ -37,6 +39,7 @@ from .context.prompt_builder import (
     describe_prompt_sections,
 )
 from .identity import async_get_entity_identity
+from .memory import async_get_entity_memory
 from .providers import OpenAICompatibleProvider, ProviderError
 
 _LOGGER = logging.getLogger(__name__)
@@ -107,6 +110,11 @@ class HousePersonalityConversationAgent(conversation.ConversationEntity):
             values.get(CONF_IDENTITY_ENTITY),
             max_chars=DEFAULT_IDENTITY_MAX_CHARS,
         )
+        memory_result = await async_get_entity_memory(
+            self._hass,
+            values.get(CONF_MEMORY_ENTITY),
+            max_chars=DEFAULT_MEMORY_MAX_CHARS,
+        )
 
         prompt_context = PromptContext(
             personality_prompt=values.get(
@@ -116,6 +124,7 @@ class HousePersonalityConversationAgent(conversation.ConversationEntity):
             user_message=user_message,
             household_context=context_result.content,
             speaker_identity=identity_result.speaker,
+            memory_context=memory_result.content,
         )
         messages = build_chat_messages(prompt_context)
 
@@ -135,6 +144,12 @@ class HousePersonalityConversationAgent(conversation.ConversationEntity):
                 values.get(CONF_IDENTITY_ENTITY) or None,
                 identity_result.included,
                 identity_result.reason,
+            )
+            _LOGGER.debug(
+                "House Personality memory entity status: entity=%s included=%s reason=%s",
+                values.get(CONF_MEMORY_ENTITY) or None,
+                memory_result.included,
+                memory_result.reason,
             )
 
         provider = OpenAICompatibleProvider(

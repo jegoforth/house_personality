@@ -24,6 +24,7 @@ from .const import (
     CONF_CONTEXT_ENTITY,
     CONF_DEBUG_LOGGING,
     CONF_IDENTITY_ENTITY,
+    CONF_MEMORY_ENTITY,
     CONF_PERSONALITY_PROMPT,
     CONF_TEMPERATURE,
     DEFAULT_ASSISTANT_NAME,
@@ -174,6 +175,10 @@ def _config_schema(defaults: dict[str, Any] | None = None) -> vol.Schema:
                 CONF_IDENTITY_ENTITY,
                 default=defaults.get(CONF_IDENTITY_ENTITY, ""),
             ): EntitySelector(),
+            vol.Optional(
+                CONF_MEMORY_ENTITY,
+                default=defaults.get(CONF_MEMORY_ENTITY, ""),
+            ): EntitySelector(),
             vol.Required(
                 CONF_DEBUG_LOGGING,
                 default=defaults.get(CONF_DEBUG_LOGGING, False),
@@ -194,6 +199,7 @@ def _normalize_user_input(user_input: dict[str, Any]) -> dict[str, Any]:
         CONF_PERSONALITY_PROMPT: user_input[CONF_PERSONALITY_PROMPT].strip(),
         CONF_CONTEXT_ENTITY: _clean_optional_text(user_input.get(CONF_CONTEXT_ENTITY)),
         CONF_IDENTITY_ENTITY: _clean_optional_text(user_input.get(CONF_IDENTITY_ENTITY)),
+        CONF_MEMORY_ENTITY: _clean_optional_text(user_input.get(CONF_MEMORY_ENTITY)),
         CONF_DEBUG_LOGGING: bool(user_input[CONF_DEBUG_LOGGING]),
     }
 

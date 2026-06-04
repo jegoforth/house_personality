@@ -15,6 +15,7 @@
           "personality_prompt": "Personality prompt",
           "context_entity": "Context entity",
           "identity_entity": "Identity entity",
+          "memory_entity": "Memory entity",
           "debug_logging": "Debug logging"
         }
       }
@@ -42,6 +43,7 @@
           "personality_prompt": "Personality prompt",
           "context_entity": "Context entity",
           "identity_entity": "Identity entity",
+          "memory_entity": "Memory entity",
           "debug_logging": "Debug logging"
         }
       }

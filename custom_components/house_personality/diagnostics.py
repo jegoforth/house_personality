@@ -12,6 +12,7 @@ from .const import (
     CONFIG_KEYS,
     CONF_CONTEXT_ENTITY,
     CONF_IDENTITY_ENTITY,
+    CONF_MEMORY_ENTITY,
     DOMAIN,
     REDACTED,
 )
@@ -41,7 +42,7 @@ def _redact_config(values: dict[str, Any]) -> dict[str, Any]:
     for key, value in values.items():
         if key == CONF_API_KEY:
             redacted[key] = REDACTED if value else ""
-        elif key in {CONF_CONTEXT_ENTITY, CONF_IDENTITY_ENTITY}:
+        elif key in {CONF_CONTEXT_ENTITY, CONF_IDENTITY_ENTITY, CONF_MEMORY_ENTITY}:
             redacted[key] = REDACTED if value else ""
         elif key in CONFIG_KEYS:
             redacted[key] = value

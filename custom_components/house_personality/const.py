@@ -13,6 +13,7 @@ CONF_BASE_URL = "base_url"
 CONF_CONTEXT_ENTITY = "context_entity"
 CONF_DEBUG_LOGGING = "debug_logging"
 CONF_IDENTITY_ENTITY = "identity_entity"
+CONF_MEMORY_ENTITY = "memory_entity"
 CONF_PERSONALITY_PROMPT = "personality_prompt"
 CONF_TEMPERATURE = "temperature"
 
@@ -20,6 +21,7 @@ DEFAULT_ASSISTANT_NAME = "House Assistant"
 DEFAULT_BASE_URL = "https://api.openai.com/v1"
 DEFAULT_CONTEXT_MAX_CHARS = 4000
 DEFAULT_IDENTITY_MAX_CHARS = 500
+DEFAULT_MEMORY_MAX_CHARS = 6000
 DEFAULT_MODEL = "gpt-4o-mini"
 DEFAULT_PERSONALITY_PROMPT = "You are a helpful, concise Home Assistant voice assistant."
 DEFAULT_TEMPERATURE = 0.7
@@ -42,5 +44,6 @@ CONFIG_KEYS = (
     CONF_PERSONALITY_PROMPT,
     CONF_CONTEXT_ENTITY,
     CONF_IDENTITY_ENTITY,
+    CONF_MEMORY_ENTITY,
     CONF_DEBUG_LOGGING,
 )

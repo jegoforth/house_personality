@@ -13,6 +13,7 @@ class PromptContext:
     user_message: str
     household_context: str | None = None
     speaker_identity: str | None = None
+    memory_context: str | None = None
 
 
 def build_chat_messages(context: PromptContext) -> list[dict[str, str]]:
@@ -46,6 +47,17 @@ def build_chat_messages(context: PromptContext) -> list[dict[str, str]]:
             }
         )
 
+    if context.memory_context:
+        messages.append(
+            {
+                "role": "system",
+                "content": (
+                    "Optional relevant memory from the configured memory entity:\n"
+                    f"{context.memory_context.strip()}"
+                ),
+            }
+        )
+
     messages.append(
         {
             "role": "user",
@@ -61,5 +73,6 @@ def describe_prompt_sections(context: PromptContext) -> dict[str, bool]:
         "personality_prompt": bool(context.personality_prompt.strip()),
         "household_context": bool(context.household_context),
         "speaker_identity": bool(context.speaker_identity),
+        "memory_context": bool(context.memory_context),
         "user_message": bool(context.user_message.strip()),
     }
