@@ -26,6 +26,8 @@ from .const import (
     CONF_RECALL_SERVICE_DOMAIN,
     CONF_RECALL_SERVICE_NAME,
     CONF_TEMPERATURE,
+    CONF_VISION_ENABLED,
+    CONF_VISION_ENTITY,
     DEFAULT_ASSISTANT_NAME,
     DEFAULT_BASE_URL,
     DEFAULT_CONTEXT_MAX_CHARS,
@@ -39,6 +41,7 @@ from .const import (
     DEFAULT_RECALL_SERVICE_NAME,
     DEFAULT_TEMPERATURE,
     DEFAULT_TIMEOUT,
+    DEFAULT_VISION_MAX_CHARS,
     FRIENDLY_PROVIDER_ERROR,
 )
 from .context.entity_context import async_get_entity_context
@@ -50,6 +53,7 @@ from .context.prompt_builder import (
 from .identity import async_get_entity_identity
 from .memory import async_get_entity_memory, async_get_recall_memory
 from .providers import OpenAICompatibleProvider, ProviderError
+from .vision import async_get_entity_vision_context
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -146,6 +150,12 @@ class HousePersonalityConversationAgent(conversation.ConversationEntity):
             entity_memory=memory_result.content,
             recall_memory=recall_result.content,
         )
+        vision_result = await async_get_entity_vision_context(
+            self._hass,
+            enabled=bool(values.get(CONF_VISION_ENABLED, False)),
+            entity_id=values.get(CONF_VISION_ENTITY),
+            max_chars=DEFAULT_VISION_MAX_CHARS,
+        )
 
         prompt_context = PromptContext(
             personality_prompt=values.get(
@@ -156,6 +166,7 @@ class HousePersonalityConversationAgent(conversation.ConversationEntity):
             household_context=context_result.content,
             speaker_identity=identity_result.speaker,
             memory_context=memory_context,
+            vision_context=vision_result.content,
         )
         messages = build_chat_messages(prompt_context)
 
@@ -189,6 +200,13 @@ class HousePersonalityConversationAgent(conversation.ConversationEntity):
                 values.get(CONF_RECALL_SERVICE_NAME, DEFAULT_RECALL_SERVICE_NAME),
                 recall_result.included,
                 recall_result.reason,
+            )
+            _LOGGER.debug(
+                "House Personality vision/event entity status: enabled=%s entity=%s included=%s reason=%s",
+                bool(values.get(CONF_VISION_ENABLED, False)),
+                values.get(CONF_VISION_ENTITY) or None,
+                vision_result.included,
+                vision_result.reason,
             )
 
         provider = OpenAICompatibleProvider(

@@ -32,6 +32,8 @@ from .const import (
     CONF_RECALL_SERVICE_DOMAIN,
     CONF_RECALL_SERVICE_NAME,
     CONF_TEMPERATURE,
+    CONF_VISION_ENABLED,
+    CONF_VISION_ENTITY,
     DEFAULT_ASSISTANT_NAME,
     DEFAULT_BASE_URL,
     DEFAULT_MODEL,
@@ -220,6 +222,14 @@ def _config_schema(defaults: dict[str, Any] | None = None) -> vol.Schema:
                 default=defaults.get(CONF_RECALL_INCLUDE_TURNS, False),
             ): BooleanSelector(),
             vol.Required(
+                CONF_VISION_ENABLED,
+                default=defaults.get(CONF_VISION_ENABLED, False),
+            ): BooleanSelector(),
+            vol.Optional(
+                CONF_VISION_ENTITY,
+                default=defaults.get(CONF_VISION_ENTITY, ""),
+            ): EntitySelector(),
+            vol.Required(
                 CONF_DEBUG_LOGGING,
                 default=defaults.get(CONF_DEBUG_LOGGING, False),
             ): BooleanSelector(),
@@ -245,6 +255,8 @@ def _normalize_user_input(user_input: dict[str, Any]) -> dict[str, Any]:
         CONF_RECALL_SERVICE_NAME: user_input[CONF_RECALL_SERVICE_NAME].strip(),
         CONF_RECALL_LIMIT: int(user_input[CONF_RECALL_LIMIT]),
         CONF_RECALL_INCLUDE_TURNS: bool(user_input[CONF_RECALL_INCLUDE_TURNS]),
+        CONF_VISION_ENABLED: bool(user_input[CONF_VISION_ENABLED]),
+        CONF_VISION_ENTITY: _clean_optional_text(user_input.get(CONF_VISION_ENTITY)),
         CONF_DEBUG_LOGGING: bool(user_input[CONF_DEBUG_LOGGING]),
     }
 

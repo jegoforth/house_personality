@@ -21,6 +21,8 @@
           "recall_service_name": "Recall service name",
           "recall_limit": "Recall result limit",
           "recall_include_turns": "Include supporting recall turns",
+          "vision_enabled": "Use vision/event summary context",
+          "vision_entity": "Vision/event summary entity",
           "debug_logging": "Debug logging"
         }
       }
@@ -54,6 +56,8 @@
           "recall_service_name": "Recall service name",
           "recall_limit": "Recall result limit",
           "recall_include_turns": "Include supporting recall turns",
+          "vision_enabled": "Use vision/event summary context",
+          "vision_entity": "Vision/event summary entity",
           "debug_logging": "Debug logging"
         }
       }

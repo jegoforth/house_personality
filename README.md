@@ -20,9 +20,10 @@ This project is intended to be reusable and community-friendly. It does not incl
   - optional identity entity
   - optional memory entity
   - optional Voice Assist Recall service adapter
+  - optional vision/event summary entity
   - debug logging
 - Calls an OpenAI-compatible `/chat/completions` endpoint.
-- Builds prompts from the configured personality prompt, optional entity context, optional speaker identity, optional memory/recall context, and current user message.
+- Builds prompts from the configured personality prompt, optional entity context, optional speaker identity, optional memory/recall context, optional vision/event summary context, and current user message.
 - Returns friendly fallback responses when the provider fails.
 - Provides memory update proposal services for explicit review.
 - Provides diagnostics with secret redaction.
@@ -79,6 +80,8 @@ The UI config flow asks for:
 - **Recall service name**: Service name for the recall adapter. The current default is `prepare_recall_context`.
 - **Recall result limit**: Maximum number of relevant recall items requested from the service.
 - **Include supporting recall turns**: Whether the Recall service may include supporting raw turns when it prepares context.
+- **Use vision/event summary context**: Enables read-only event summary inclusion from a configured entity.
+- **Vision/event summary entity**: Optional entity whose state and attributes describe recent camera, event, or visual summary context.
 - **Debug logging**: Adds operational debug logs without logging API keys or full prompts.
 
 ## Provider Setup
@@ -98,10 +101,12 @@ Examples:
 
 ## Privacy Notes
 
-House Personality sends the configured personality prompt, current Assist user message, and any configured context, identity, memory entity, or relevant Voice Assist Recall data to the configured provider. Context, memory, and recall content may contain personal home information. Identity entity state may identify a person if you configure it that way.
+House Personality sends the configured personality prompt, current Assist user message, and any configured context, identity, memory entity, relevant Voice Assist Recall data, or vision/event summary entity data to the configured provider. Context, memory, recall, and event summary content may contain personal home information. Identity entity state may identify a person if you configure it that way.
+
+House Personality does not analyze camera images or video. Vision/event context is read only from text summaries exposed by other integrations or helpers.
 
 The integration does not store conversation memory and does not write to any memory file. API keys are redacted from diagnostics and are not logged.
-Configured context, identity, and memory entity IDs are also redacted from diagnostics.
+Configured context, identity, memory, and vision/event entity IDs are also redacted from diagnostics.
 
 Memory proposal services store pending proposal text locally in Home Assistant storage for explicit review. Approving a proposal only marks it approved; it does not write to any external memory system or file.
 
@@ -121,6 +126,7 @@ House Personality exposes these services:
 - Confirm the API key is valid if the provider requires one.
 - If context, identity, or memory is missing, confirm the configured entities exist and are not `unknown` or `unavailable`.
 - If recall is missing, confirm the configured service exists. For the current Voice Assist Recall project, use `conversation_memory.prepare_recall_context`.
+- If vision/event context is missing, confirm the configured summary entity exists and contains text summary data.
 - Increase the timeout for slower local models.
 - Enable debug logging in the integration options for operational details.
 - Check Home Assistant logs for provider error summaries.

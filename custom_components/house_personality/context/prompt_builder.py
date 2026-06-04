@@ -14,6 +14,7 @@ class PromptContext:
     household_context: str | None = None
     speaker_identity: str | None = None
     memory_context: str | None = None
+    vision_context: str | None = None
 
 
 def build_chat_messages(context: PromptContext) -> list[dict[str, str]]:
@@ -58,6 +59,17 @@ def build_chat_messages(context: PromptContext) -> list[dict[str, str]]:
             }
         )
 
+    if context.vision_context:
+        messages.append(
+            {
+                "role": "system",
+                "content": (
+                    "Optional recent vision or event summary from the configured entity:\n"
+                    f"{context.vision_context.strip()}"
+                ),
+            }
+        )
+
     messages.append(
         {
             "role": "user",
@@ -74,5 +86,6 @@ def describe_prompt_sections(context: PromptContext) -> dict[str, bool]:
         "household_context": bool(context.household_context),
         "speaker_identity": bool(context.speaker_identity),
         "memory_context": bool(context.memory_context),
+        "vision_context": bool(context.vision_context),
         "user_message": bool(context.user_message.strip()),
     }

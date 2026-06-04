@@ -33,6 +33,8 @@ CONF_RECALL_LIMIT = "recall_limit"
 CONF_RECALL_SERVICE_DOMAIN = "recall_service_domain"
 CONF_RECALL_SERVICE_NAME = "recall_service_name"
 CONF_TEMPERATURE = "temperature"
+CONF_VISION_ENABLED = "vision_enabled"
+CONF_VISION_ENTITY = "vision_entity"
 
 DEFAULT_ASSISTANT_NAME = "House Assistant"
 DEFAULT_BASE_URL = "https://api.openai.com/v1"
@@ -47,6 +49,7 @@ DEFAULT_RECALL_SERVICE_DOMAIN = "conversation_memory"
 DEFAULT_RECALL_SERVICE_NAME = "prepare_recall_context"
 DEFAULT_TEMPERATURE = 0.7
 DEFAULT_TIMEOUT = 30
+DEFAULT_VISION_MAX_CHARS = 3000
 
 DATA_PROPOSAL_STORE = "proposal_store"
 DATA_SERVICES_REGISTERED = "services_registered"
@@ -89,5 +92,7 @@ CONFIG_KEYS = (
     CONF_RECALL_SERVICE_NAME,
     CONF_RECALL_LIMIT,
     CONF_RECALL_INCLUDE_TURNS,
+    CONF_VISION_ENABLED,
+    CONF_VISION_ENTITY,
     CONF_DEBUG_LOGGING,
 )
