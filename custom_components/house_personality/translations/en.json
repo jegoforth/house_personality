@@ -1,0 +1,47 @@
+{
+  "title": "House Personality",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Set up House Personality",
+        "description": "Configure an OpenAI-compatible provider and the assistant personality.",
+        "data": {
+          "assistant_name": "Assistant display name",
+          "base_url": "Provider base URL",
+          "api_key": "API key",
+          "model": "Model",
+          "temperature": "Temperature",
+          "timeout": "Timeout",
+          "personality_prompt": "Personality prompt",
+          "debug_logging": "Debug logging"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Could not connect to the provider.",
+      "unknown": "Unexpected error"
+    },
+    "abort": {
+      "already_configured": "House Personality is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "House Personality options",
+        "description": "Update provider and personality settings.",
+        "data": {
+          "assistant_name": "Assistant display name",
+          "base_url": "Provider base URL",
+          "api_key": "API key",
+          "model": "Model",
+          "temperature": "Temperature",
+          "timeout": "Timeout",
+          "personality_prompt": "Personality prompt",
+          "debug_logging": "Debug logging"
+        }
+      }
+    }
+  }
+}
+

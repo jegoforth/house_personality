@@ -1,0 +1,11 @@
+{
+  "domain": "house_personality",
+  "name": "House Personality",
+  "codeowners": ["@jegoforth"],
+  "config_flow": true,
+  "documentation": "https://github.com/jegoforth/house_personality",
+  "issue_tracker": "https://github.com/jegoforth/house_personality/issues",
+  "iot_class": "cloud_polling",
+  "version": "0.1.0"
+}
+
