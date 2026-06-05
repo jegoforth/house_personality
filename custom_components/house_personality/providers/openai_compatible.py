@@ -75,6 +75,7 @@ class OpenAICompatibleProvider:
         if tools:
             payload["tools"] = tools
             payload["tool_choice"] = "auto"
+            payload["parallel_tool_calls"] = False
 
         if self._debug_logging:
             _LOGGER.debug(

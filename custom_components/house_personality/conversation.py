@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import time
@@ -61,12 +62,55 @@ from .vision import async_get_entity_vision_context
 _LOGGER = logging.getLogger(__name__)
 
 _MAX_TOOL_ITERATIONS = 10
+_MUTATING_TOOL_SETTLE_DELAY = 1.0
+_MUTATING_TOOL_NAMES = {
+    "HassBroadcast",
+    "HassCancelAllTimers",
+    "HassCancelTimer",
+    "HassClimateSetTemperature",
+    "HassDecreaseTimer",
+    "HassFanSetSpeed",
+    "HassIncreaseTimer",
+    "HassLightSet",
+    "HassListAddItem",
+    "HassListCompleteItem",
+    "HassListRemoveItem",
+    "HassMediaNext",
+    "HassMediaPause",
+    "HassMediaPlayerMute",
+    "HassMediaPlayerUnmute",
+    "HassMediaPrevious",
+    "HassMediaSearchAndPlay",
+    "HassMediaUnpause",
+    "HassPauseTimer",
+    "HassSetPosition",
+    "HassSetVolume",
+    "HassSetVolumeRelative",
+    "HassShoppingListAddItem",
+    "HassShoppingListCompleteItem",
+    "HassStartTimer",
+    "HassTimerStatus",
+    "HassTurnOff",
+    "HassTurnOn",
+    "HassUnpauseTimer",
+    "HassVacuumCleanArea",
+    "HassVacuumReturnToBase",
+    "HassVacuumStart",
+}
 _HOME_ASSISTANT_TOOL_INSTRUCTIONS = """
 Home Assistant tool use rules:
-- For requests to turn on, turn off, toggle, set, change, open, close, lock, unlock, start, stop, or otherwise control home devices, call the available Home Assistant tools.
-- For requests to verify, check, confirm, or report the current state of home devices, call the available Home Assistant tools.
-- Do not say a Home Assistant action was performed unless a tool call was made and the tool result supports that claim.
-- Do not say a current state was verified unless a tool call returned current state information.
+- For requests to turn on, turn off, toggle, set, change, open, close,
+  lock, unlock, start, stop, or otherwise control home devices, call the
+  available Home Assistant tools.
+- For requests to verify, check, confirm, or report the current state of home
+  devices, call the available Home Assistant tools.
+- When a user asks to control a device and verify the result, call the control
+  tool first, wait for its result, then call the state/check tool in a later
+  step.
+- Do not say a Home Assistant action was performed unless a tool call was made
+  and the tool result supports that claim.
+- Do not say a current state was verified unless a tool call returned current
+  state information.
 - If a needed tool is unavailable or fails, say that clearly instead of claiming success.
 """.strip()
 
@@ -342,6 +386,14 @@ class HousePersonalityConversationAgent(conversation.ConversationEntity):
                         "House Personality executed %s Home Assistant tool result(s)",
                         tool_results,
                     )
+                if _has_mutating_tool_call(response.tool_calls):
+                    if debug_logging:
+                        _LOGGER.debug(
+                            "House Personality waiting %.1fs for Home Assistant "
+                            "state to settle after mutating tool call",
+                            _MUTATING_TOOL_SETTLE_DELAY,
+                        )
+                    await asyncio.sleep(_MUTATING_TOOL_SETTLE_DELAY)
                 continue
 
             if response.content:
@@ -458,6 +510,11 @@ def _tool_names(tools: list[dict[str, Any]]) -> list[str]:
         if isinstance(function, dict) and isinstance(function.get("name"), str):
             names.append(function["name"])
     return names
+
+
+def _has_mutating_tool_call(tool_calls: list[Any]) -> bool:
+    """Return whether a tool-call batch likely changed Home Assistant state."""
+    return any(tool_call.name in _MUTATING_TOOL_NAMES for tool_call in tool_calls)
 
 
 def _chat_log_to_openai_messages(
