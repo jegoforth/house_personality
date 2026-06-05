@@ -111,13 +111,6 @@ class HousePersonalityConversationAgent(conversation.ConversationEntity):
         """Handle a conversation message with the current chat log API."""
         return await self._async_process_message(user_input, chat_log)
 
-    async def async_process(
-        self,
-        user_input: conversation.ConversationInput,
-    ) -> conversation.ConversationResult:
-        """Process a conversation request on older Home Assistant versions."""
-        return await self._async_process_message(user_input)
-
     async def _async_process_message(
         self,
         user_input: conversation.ConversationInput,
