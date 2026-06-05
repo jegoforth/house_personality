@@ -101,11 +101,18 @@ class HousePersonalityOptionsFlow(config_entries.OptionsFlow):
         user_input: dict[str, Any] | None = None,
     ) -> config_entries.FlowResult:
         """Manage options."""
+        return await self.async_step_house_personality_options(user_input)
+
+    async def async_step_house_personality_options(
+        self,
+        user_input: dict[str, Any] | None = None,
+    ) -> config_entries.FlowResult:
+        """Manage House Personality options."""
         if user_input is not None:
             errors = _validate_user_input(user_input)
             if errors:
                 return self.async_show_form(
-                    step_id="init",
+                    step_id="house_personality_options",
                     data_schema=_config_schema(user_input),
                     errors=errors,
                 )
@@ -117,7 +124,7 @@ class HousePersonalityOptionsFlow(config_entries.OptionsFlow):
 
         values = _entry_values(self._config_entry)
         return self.async_show_form(
-            step_id="init",
+            step_id="house_personality_options",
             data_schema=_config_schema(values),
         )
 
