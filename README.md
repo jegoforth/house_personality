@@ -85,6 +85,99 @@ The UI config flow asks for:
 - **Vision/event summary entity**: Optional entity whose state and attributes describe recent camera, event, or visual summary context.
 - **Debug logging**: Adds operational debug logs without logging API keys or full prompts.
 
+Home Assistant may show raw option keys for some selector-based fields. The fields map as follows:
+
+| Field key | Purpose |
+| --- | --- |
+| `context_entity` | Optional helper or sensor with home context. |
+| `identity_entity` | Optional helper or sensor whose state is the current speaker, such as `Guest` or `Unknown`. |
+| `memory_entity` | Optional helper or sensor with read-only durable memory summary. |
+| `recall_enabled` | Enables optional read-only recall service lookup. |
+| `recall_service_domain` | Service domain for the recall adapter. |
+| `recall_service_name` | Service name for the recall adapter. |
+| `recall_limit` | Maximum number of recall items requested. |
+| `recall_include_turns` | Allows recall to include supporting conversation turns. |
+| `vision_enabled` | Enables optional event/vision summary context. |
+| `vision_entity` | Optional helper or sensor with recent event summary text. |
+| `debug_logging` | Enables operational debug logs. |
+
+## Building Helper Entities
+
+House Personality does not create private household context or memory by default. Users choose which Home Assistant helpers, template sensors, or external integrations to connect.
+
+### Personality Prompt
+
+Use the personality prompt for assistant behavior and tone. This can be generic or household-specific in your private Home Assistant instance.
+
+Example:
+
+```text
+You are a helpful, concise Home Assistant voice assistant. Use Home Assistant state and tools when answering smart-home questions. Do not invent missing facts.
+```
+
+### Context Entity
+
+Use `context_entity` for broad home context that may be useful in many requests.
+
+Suitable sources include:
+
+- `input_text` helper
+- template sensor
+- markdown/text sensor from another integration
+- automation-maintained summary entity
+
+Example state:
+
+```text
+Home context summary. Use Home Assistant state for live device status. Use configured memory only for durable facts. Do not invent missing facts.
+```
+
+### Identity Entity
+
+Use `identity_entity` only for the current speaker or person identity. Leave it blank if you do not have speaker recognition or another reliable identity source.
+
+Example states:
+
+```text
+Guest
+Unknown
+Person A
+Person B
+```
+
+Do not put the assistant persona in `identity_entity`; put persona text in the personality prompt or a context helper.
+
+### Memory Entity
+
+Use `memory_entity` for a read-only summary of durable facts, preferences, or project notes. House Personality reads this content into the prompt but does not write back to it.
+
+Example state or attributes:
+
+```text
+Shared preferences are available. Recent durable notes are available. Do not treat missing facts as known.
+```
+
+### Voice Assist Recall
+
+When enabled, House Personality calls the configured recall service and includes returned text as optional memory context. The recall service is optional and must prepare prompt-safe text.
+
+Default service fields:
+
+```text
+recall_service_domain: conversation_memory
+recall_service_name: prepare_recall_context
+```
+
+### Vision/Event Summary Entity
+
+Use `vision_entity` for read-only text summaries from another integration or helper. House Personality does not analyze camera images or video.
+
+Example state:
+
+```text
+Recent event summary: motion was detected near the driveway at 8:42 PM.
+```
+
 ## Provider Setup
 
 House Personality expects an OpenAI-compatible chat completions API.
@@ -122,6 +215,10 @@ House Personality exposes these services:
 - `house_personality.approve_memory_proposal`: Mark a proposal as approved without writing it anywhere else.
 - `house_personality.reject_memory_proposal`: Mark a proposal as rejected.
 
+## Testing
+
+See [TESTING.md](TESTING.md) for a repeatable manual test checklist covering installation, config flow, options flow, text Assist, voice Assist, tool control, recall, diagnostics, and privacy checks.
+
 ## Troubleshooting
 
 - Confirm the provider base URL points to an OpenAI-compatible chat completions endpoint.
@@ -136,11 +233,11 @@ House Personality exposes these services:
 
 ## Roadmap
 
-- Phase 2: optional entity-based context and speaker identity.
-- Phase 3: generic memory adapter foundation.
-- Phase 4: optional Voice Assist Recall adapter.
-- Phase 5: memory update proposal workflow.
-- Phase 6: optional vision/event summary context.
+- Phase 2: optional entity-based context and speaker identity. Implemented.
+- Phase 3: generic memory adapter foundation. Implemented as read-only entity memory.
+- Phase 4: optional Voice Assist Recall adapter. Implemented as an optional read-only service adapter.
+- Phase 5: memory update proposal workflow. Implemented as explicit proposal services.
+- Phase 6: optional vision/event summary context. Implemented as read-only entity summary context.
 - Phase 7: advanced provider configuration.
 - Phase 8: tests, diagnostics hardening, and release validation.
 - Phase 9: public release readiness.
