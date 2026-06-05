@@ -29,6 +29,12 @@
           "context_entity": "Optional entity that provides home or household context.",
           "identity_entity": "Optional entity that identifies the current speaker.",
           "memory_entity": "Optional entity that provides read-only memory context.",
+          "recall_enabled": "Enable optional read-only conversation recall from a configured service.",
+          "recall_service_domain": "Service domain for the recall adapter.",
+          "recall_service_name": "Service name for the recall adapter.",
+          "recall_limit": "Maximum number of recall items to request.",
+          "recall_include_turns": "Allow the recall service to include supporting conversation turns.",
+          "vision_enabled": "Enable optional read-only event or vision summary context.",
           "vision_entity": "Optional entity that provides recent event or vision summary text."
         }
       }
@@ -70,6 +76,12 @@
           "context_entity": "Optional entity that provides home or household context.",
           "identity_entity": "Optional entity that identifies the current speaker.",
           "memory_entity": "Optional entity that provides read-only memory context.",
+          "recall_enabled": "Enable optional read-only conversation recall from a configured service.",
+          "recall_service_domain": "Service domain for the recall adapter.",
+          "recall_service_name": "Service name for the recall adapter.",
+          "recall_limit": "Maximum number of recall items to request.",
+          "recall_include_turns": "Allow the recall service to include supporting conversation turns.",
+          "vision_enabled": "Enable optional read-only event or vision summary context.",
           "vision_entity": "Optional entity that provides recent event or vision summary text."
         }
       }
