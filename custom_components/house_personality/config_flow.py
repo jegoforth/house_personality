@@ -177,18 +177,9 @@ def _config_schema(defaults: dict[str, Any] | None = None) -> vol.Schema:
                     DEFAULT_PERSONALITY_PROMPT,
                 ),
             ): TextSelector(TextSelectorConfig(multiline=True)),
-            vol.Optional(
-                CONF_CONTEXT_ENTITY,
-                default=_optional_entity_default(defaults, CONF_CONTEXT_ENTITY),
-            ): EntitySelector(),
-            vol.Optional(
-                CONF_IDENTITY_ENTITY,
-                default=_optional_entity_default(defaults, CONF_IDENTITY_ENTITY),
-            ): EntitySelector(),
-            vol.Optional(
-                CONF_MEMORY_ENTITY,
-                default=_optional_entity_default(defaults, CONF_MEMORY_ENTITY),
-            ): EntitySelector(),
+            _optional_entity_key(defaults, CONF_CONTEXT_ENTITY): EntitySelector(),
+            _optional_entity_key(defaults, CONF_IDENTITY_ENTITY): EntitySelector(),
+            _optional_entity_key(defaults, CONF_MEMORY_ENTITY): EntitySelector(),
             vol.Required(
                 CONF_RECALL_ENABLED,
                 default=defaults.get(CONF_RECALL_ENABLED, False),
@@ -225,10 +216,7 @@ def _config_schema(defaults: dict[str, Any] | None = None) -> vol.Schema:
                 CONF_VISION_ENABLED,
                 default=defaults.get(CONF_VISION_ENABLED, False),
             ): BooleanSelector(),
-            vol.Optional(
-                CONF_VISION_ENTITY,
-                default=_optional_entity_default(defaults, CONF_VISION_ENTITY),
-            ): EntitySelector(),
+            _optional_entity_key(defaults, CONF_VISION_ENTITY): EntitySelector(),
             vol.Required(
                 CONF_DEBUG_LOGGING,
                 default=defaults.get(CONF_DEBUG_LOGGING, False),
@@ -261,10 +249,12 @@ def _normalize_user_input(user_input: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def _optional_entity_default(defaults: dict[str, Any], key: str) -> str | None:
-    """Return a selector-safe default for an optional entity field."""
+def _optional_entity_key(defaults: dict[str, Any], key: str) -> vol.Optional:
+    """Return a schema key for an optional entity selector."""
     value = _clean_optional_text(defaults.get(key))
-    return value or None
+    if value:
+        return vol.Optional(key, default=value)
+    return vol.Optional(key)
 
 
 def _validate_user_input(user_input: dict[str, Any]) -> dict[str, str]:
