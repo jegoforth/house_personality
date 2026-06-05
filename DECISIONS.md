@@ -28,7 +28,7 @@ The next work should focus on load testing, Assist control testing, provider/too
 - The personality prompt must be configurable.
 - No assistant name should be hardcoded.
 - No private household data should be hardcoded.
-- Elspeth is an example/private configuration, not the product identity.
+- Private assistant configurations are test cases, not the product identity.
 - The maintainer's household setup should act as an advanced test case, not the default behavior.
 
 ## Implemented Scope
@@ -132,8 +132,8 @@ Do not implement these next unless requested:
 - Provider fallback chains.
 - Multiple provider profiles.
 - Streaming support.
-- Elspeth-specific behavior.
-- Goforth-specific configuration.
+- Private assistant-specific behavior.
+- Private household-specific configuration.
 
 ## Architecture Principles
 

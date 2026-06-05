@@ -4,6 +4,12 @@ House Personality is a Home Assistant custom integration that registers a config
 
 This project is intended to be reusable and community-friendly. It does not include any private household configuration, assistant persona, entity IDs, or memory files.
 
+## Requirements
+
+- Home Assistant Core 2025.3.0 or newer.
+- An OpenAI-compatible chat completions provider.
+- A provider/model with tool-call support is required for controlling exposed Home Assistant entities through Assist.
+
 ## Current Capabilities
 
 - Registers a Home Assistant Assist conversation agent.

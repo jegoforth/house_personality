@@ -45,7 +45,7 @@ The long-term goal is to create a community-friendly, HACS-installable integrati
 
 This project should be designed as a reusable framework.
 
-The maintainer’s personal assistant configuration, currently named Elspeth, is only one example use case. The public integration must not hardcode any private household names, user names, entity IDs, prompts, memory files, or assumptions.
+The maintainer's personal assistant configuration is only one private example use case. The public integration must not hardcode any private household names, user names, entity IDs, prompts, memory files, or assumptions.
 
 ## Design Philosophy
 
@@ -183,11 +183,11 @@ house_personality
 The integration should allow users to configure their own assistant display name, such as:
 
 ```text
-Elspeth
-Jarvis
-Athena
 House Assistant
 Kitchen Assistant
+Workshop Assistant
+Family Assistant
+Personal Assistant
 ```
 
 No assistant name should be hardcoded.
@@ -867,8 +867,8 @@ Memory: none
 A user configures:
 
 ```text
-Assistant name: Athena
-Context entity: sensor.house_context_summary
+Assistant name: Family Assistant
+Context entity: sensor.home_context_summary
 Identity: none
 Memory: none
 ```
@@ -879,7 +879,7 @@ A user configures:
 
 ```text
 Assistant name: Home Assistant
-Context entity: sensor.house_context_summary
+Context entity: sensor.home_context_summary
 Identity entity: sensor.last_recognized_speaker
 Memory: none
 ```
@@ -889,11 +889,11 @@ Memory: none
 A user configures:
 
 ```text
-Assistant name: Elspeth
-Context entity: sensor.house_memory_summary
+Assistant name: Personal Assistant
+Context entity: sensor.home_context_summary
 Identity entity: sensor.speaker_recognition_last_user
 Memory provider: Voice Assist Recall
-Vision provider: LLM Vision event summaries
+Vision provider: event summary entity
 ```
 
 This advanced example should be documented as optional and not required.
@@ -944,6 +944,6 @@ The integration should allow users to bring their own:
 - Memory system.
 - Vision/event source.
 
-The maintainer’s Elspeth setup should serve as an advanced reference implementation, not the default behavior.
+The maintainer's private setup should serve as an advanced test case, not the default behavior.
 
 The final goal is a flexible Home Assistant Assist conversation agent that feels aware of the home, aware of the speaker, and able to use memory responsibly while remaining installable, understandable, and safe for community use.
