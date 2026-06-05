@@ -71,6 +71,7 @@ class HousePersonalityConversationAgent(conversation.ConversationEntity):
     """House Personality conversation agent."""
 
     _attr_has_entity_name = False
+    _attr_supported_features = conversation.ConversationEntityFeature.CONTROL
     _attr_supported_languages = "*"
 
     def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
