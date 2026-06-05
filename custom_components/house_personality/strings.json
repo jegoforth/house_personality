@@ -90,7 +90,7 @@
         "data": {
           "assistant_name": "Assistant display name",
           "base_url": "Provider base URL",
-          "api_key": "API key",
+          "api_key": "New API key",
           "model": "Model",
           "temperature": "Temperature",
           "timeout": "Timeout",
@@ -108,6 +108,7 @@
           "debug_logging": "Debug logging"
         },
         "data_description": {
+          "api_key": "Leave blank to keep the existing API key. Enter a new value only to replace it.",
           "context_entity": "Optional entity that provides home or household context.",
           "identity_entity": "Optional entity that identifies the current speaker.",
           "memory_entity": "Optional entity that provides read-only memory context.",
@@ -126,7 +127,7 @@
         "data": {
           "assistant_name": "Assistant display name",
           "base_url": "Provider base URL",
-          "api_key": "API key",
+          "api_key": "New API key",
           "model": "Model",
           "temperature": "Temperature",
           "timeout": "Timeout",
@@ -144,6 +145,7 @@
           "debug_logging": "Debug logging"
         },
         "data_description": {
+          "api_key": "Leave blank to keep the existing API key. Enter a new value only to replace it.",
           "context_entity": "Optional entity that provides home or household context.",
           "identity_entity": "Optional entity that identifies the current speaker.",
           "memory_entity": "Optional entity that provides read-only memory context.",

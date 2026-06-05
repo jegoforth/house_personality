@@ -85,6 +85,8 @@ The UI config flow asks for:
 - **Vision/event summary entity**: Optional entity whose state and attributes describe recent camera, event, or visual summary context.
 - **Debug logging**: Adds operational debug logs without logging API keys or full prompts.
 
+The API key is entered during setup. In the options flow, the API key field is blank by default; leave it blank to keep the existing key, or enter a new value to replace it. The stored key is not pre-filled in options.
+
 Home Assistant may show raw option keys for some selector-based fields. The fields map as follows:
 
 | Field key | Purpose |

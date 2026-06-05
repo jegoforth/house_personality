@@ -120,19 +120,30 @@ class HousePersonalityOptionsFlow(config_entries.OptionsFlow):
             if errors:
                 return self.async_show_form(
                     step_id="house_personality_options",
-                    data_schema=_config_schema(user_input),
+                    data_schema=_config_schema(user_input, expose_api_key=True),
                     errors=errors,
+                )
+
+            values = _entry_values(self._config_entry)
+            options, api_key = _normalize_options_input(user_input, values)
+            if api_key != self._config_entry.data.get(CONF_API_KEY, ""):
+                self.hass.config_entries.async_update_entry(
+                    self._config_entry,
+                    data={
+                        **self._config_entry.data,
+                        CONF_API_KEY: api_key,
+                    },
                 )
 
             return self.async_create_entry(
                 title=user_input[CONF_ASSISTANT_NAME],
-                data=_normalize_user_input(user_input),
+                data=options,
             )
 
         values = _entry_values(self._config_entry)
         return self.async_show_form(
             step_id="house_personality_options",
-            data_schema=_config_schema(values),
+            data_schema=_config_schema(values, expose_api_key=False),
         )
 
 
@@ -143,9 +154,14 @@ def _entry_values(config_entry: config_entries.ConfigEntry) -> dict[str, Any]:
     return values
 
 
-def _config_schema(defaults: dict[str, Any] | None = None) -> vol.Schema:
+def _config_schema(
+    defaults: dict[str, Any] | None = None,
+    *,
+    expose_api_key: bool = True,
+) -> vol.Schema:
     """Build the config/options schema."""
     defaults = defaults or {}
+    api_key_default = defaults.get(CONF_API_KEY, "") if expose_api_key else ""
     return vol.Schema(
         {
             vol.Required(
@@ -158,7 +174,7 @@ def _config_schema(defaults: dict[str, Any] | None = None) -> vol.Schema:
             ): TextSelector(),
             vol.Optional(
                 CONF_API_KEY,
-                default=defaults.get(CONF_API_KEY, ""),
+                default=api_key_default,
             ): TextSelector(TextSelectorConfig(type=TextSelectorType.PASSWORD)),
             vol.Required(
                 CONF_MODEL,
@@ -261,6 +277,18 @@ def _normalize_user_input(user_input: dict[str, Any]) -> dict[str, Any]:
         CONF_VISION_ENTITY: _clean_optional_text(user_input.get(CONF_VISION_ENTITY)),
         CONF_DEBUG_LOGGING: bool(user_input[CONF_DEBUG_LOGGING]),
     }
+
+
+def _normalize_options_input(
+    user_input: dict[str, Any],
+    existing_values: dict[str, Any],
+) -> tuple[dict[str, Any], str]:
+    """Normalize options while preserving the existing API key when blank."""
+    values = _normalize_user_input(user_input)
+    if not values[CONF_API_KEY]:
+        values[CONF_API_KEY] = _clean_optional_text(existing_values.get(CONF_API_KEY))
+    api_key = values.pop(CONF_API_KEY)
+    return values, api_key
 
 
 def _optional_entity_key(defaults: dict[str, Any], key: str) -> vol.Optional:

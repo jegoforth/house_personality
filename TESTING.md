@@ -29,6 +29,9 @@ Use this checklist before tagging a private test release or publishing the repos
 
 - [ ] Open House Personality options from the integration entry.
 - [ ] Update provider or personality settings.
+- [ ] Confirm the API key field is blank by default.
+- [ ] Submit with the API key field blank and confirm the existing key still works.
+- [ ] Enter a new API key only when intentionally rotating the provider key.
 - [ ] Set `context_entity` to a helper or sensor with generic home context.
 - [ ] Leave `identity_entity` blank unless a reliable speaker identity source exists.
 - [ ] Set `memory_entity` to a read-only memory summary helper or sensor.
@@ -121,6 +124,7 @@ House Personality waiting 1.0s for Home Assistant state to settle after mutating
 
 - [ ] Download diagnostics from the integration entry.
 - [ ] Confirm API key is redacted.
+- [ ] Confirm API key is not exposed by reopening the options flow.
 - [ ] Confirm configured context, identity, memory, and vision entity IDs are redacted.
 - [ ] Confirm no private names, entity IDs, prompts, or household details are committed to the repository.
 - [ ] Search the repository for private test data before release.
