@@ -97,6 +97,13 @@ _MUTATING_TOOL_NAMES = {
     "HassVacuumReturnToBase",
     "HassVacuumStart",
 }
+_OPENAI_UNSUPPORTED_TOP_LEVEL_SCHEMA_KEYS = {
+    "allOf",
+    "anyOf",
+    "enum",
+    "not",
+    "oneOf",
+}
 _HOME_ASSISTANT_TOOL_INSTRUCTIONS = """
 Home Assistant tool use rules:
 - For requests to turn on, turn off, toggle, set, change, open, close,
@@ -486,20 +493,47 @@ def _format_openai_tools(chat_log: conversation.ChatLog) -> list[dict[str, Any]]
     if not chat_log.llm_api:
         return []
 
-    return [
-        {
-            "type": "function",
-            "function": {
-                "name": tool.name,
-                "description": tool.description or "",
-                "parameters": convert(
-                    tool.parameters,
-                    custom_serializer=chat_log.llm_api.custom_serializer,
-                ),
-            },
-        }
-        for tool in chat_log.llm_api.tools
-    ]
+    tools: list[dict[str, Any]] = []
+    skipped_tools: list[str] = []
+
+    for tool in chat_log.llm_api.tools:
+        parameters = convert(
+            tool.parameters,
+            custom_serializer=chat_log.llm_api.custom_serializer,
+        )
+        if not _is_openai_tool_schema_supported(parameters):
+            skipped_tools.append(tool.name)
+            continue
+
+        tools.append(
+            {
+                "type": "function",
+                "function": {
+                    "name": tool.name,
+                    "description": tool.description or "",
+                    "parameters": parameters,
+                },
+            }
+        )
+
+    if skipped_tools:
+        _LOGGER.debug(
+            "Skipped Home Assistant tools with OpenAI-incompatible schemas: %s",
+            skipped_tools,
+        )
+
+    return tools
+
+
+def _is_openai_tool_schema_supported(parameters: Any) -> bool:
+    """Return whether a tool schema is accepted by OpenAI-style functions."""
+    if not isinstance(parameters, dict):
+        return False
+    if parameters.get("type") != "object":
+        return False
+    return not any(
+        key in parameters for key in _OPENAI_UNSUPPORTED_TOP_LEVEL_SCHEMA_KEYS
+    )
 
 
 def _tool_names(tools: list[dict[str, Any]]) -> list[str]:
