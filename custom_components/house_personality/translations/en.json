@@ -24,6 +24,12 @@
           "vision_enabled": "Use vision/event summary context",
           "vision_entity": "Vision/event summary entity",
           "debug_logging": "Debug logging"
+        },
+        "data_description": {
+          "context_entity": "Optional entity that provides home or household context.",
+          "identity_entity": "Optional entity that identifies the current speaker.",
+          "memory_entity": "Optional entity that provides read-only memory context.",
+          "vision_entity": "Optional entity that provides recent event or vision summary text."
         }
       }
     },
@@ -59,6 +65,12 @@
           "vision_enabled": "Use vision/event summary context",
           "vision_entity": "Vision/event summary entity",
           "debug_logging": "Debug logging"
+        },
+        "data_description": {
+          "context_entity": "Optional entity that provides home or household context.",
+          "identity_entity": "Optional entity that identifies the current speaker.",
+          "memory_entity": "Optional entity that provides read-only memory context.",
+          "vision_entity": "Optional entity that provides recent event or vision summary text."
         }
       }
     }
