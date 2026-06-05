@@ -179,15 +179,15 @@ def _config_schema(defaults: dict[str, Any] | None = None) -> vol.Schema:
             ): TextSelector(TextSelectorConfig(multiline=True)),
             vol.Optional(
                 CONF_CONTEXT_ENTITY,
-                default=defaults.get(CONF_CONTEXT_ENTITY, ""),
+                default=_optional_entity_default(defaults, CONF_CONTEXT_ENTITY),
             ): EntitySelector(),
             vol.Optional(
                 CONF_IDENTITY_ENTITY,
-                default=defaults.get(CONF_IDENTITY_ENTITY, ""),
+                default=_optional_entity_default(defaults, CONF_IDENTITY_ENTITY),
             ): EntitySelector(),
             vol.Optional(
                 CONF_MEMORY_ENTITY,
-                default=defaults.get(CONF_MEMORY_ENTITY, ""),
+                default=_optional_entity_default(defaults, CONF_MEMORY_ENTITY),
             ): EntitySelector(),
             vol.Required(
                 CONF_RECALL_ENABLED,
@@ -227,7 +227,7 @@ def _config_schema(defaults: dict[str, Any] | None = None) -> vol.Schema:
             ): BooleanSelector(),
             vol.Optional(
                 CONF_VISION_ENTITY,
-                default=defaults.get(CONF_VISION_ENTITY, ""),
+                default=_optional_entity_default(defaults, CONF_VISION_ENTITY),
             ): EntitySelector(),
             vol.Required(
                 CONF_DEBUG_LOGGING,
@@ -259,6 +259,12 @@ def _normalize_user_input(user_input: dict[str, Any]) -> dict[str, Any]:
         CONF_VISION_ENTITY: _clean_optional_text(user_input.get(CONF_VISION_ENTITY)),
         CONF_DEBUG_LOGGING: bool(user_input[CONF_DEBUG_LOGGING]),
     }
+
+
+def _optional_entity_default(defaults: dict[str, Any], key: str) -> str | None:
+    """Return a selector-safe default for an optional entity field."""
+    value = _clean_optional_text(defaults.get(key))
+    return value or None
 
 
 def _validate_user_input(user_input: dict[str, Any]) -> dict[str, str]:
