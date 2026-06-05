@@ -1,5 +1,42 @@
 # House Personality Architecture
 
+## Current Implementation Status
+
+The integration currently implements Phases 0 through 6 plus current Home Assistant conversation entity compatibility for Assist tool calls.
+
+Implemented:
+
+- HACS-friendly repository structure.
+- UI config flow and options flow.
+- Home Assistant conversation agent registration.
+- Current `_async_handle_message(self, user_input, chat_log)` conversation API support.
+- `supported_languages` returning `"*"`.
+- `ConversationEntityFeature.CONTROL` advertisement.
+- OpenAI-compatible chat completions provider.
+- OpenAI-compatible tool-call parsing.
+- Home Assistant built-in Assist LLM tools passed to compatible providers.
+- Tool calls executed through Home Assistant `ChatLog`.
+- Configurable assistant name, provider settings, personality prompt, and debug logging.
+- Optional entity context.
+- Optional entity identity.
+- Optional read-only memory entity.
+- Optional read-only Voice Assist Recall service adapter.
+- Memory proposal services with explicit approve/reject workflow.
+- Optional read-only vision/event summary entity.
+- Diagnostics with secret redaction.
+
+Still not implemented:
+
+- Speaker recognition.
+- Direct memory writing.
+- Direct writes to `house_memory.json`.
+- LLM Vision native integration.
+- Camera analysis.
+- Provider fallback chains.
+- Multiple provider profiles.
+- Streaming support.
+- Private assistant or household-specific behavior.
+
 ## Project Summary
 
 `house_personality` is a Home Assistant custom integration that provides a configurable personality, identity, memory, and context layer for Home Assistant Assist conversation agents.
@@ -41,6 +78,7 @@ The public project should provide:
 - A Home Assistant conversation agent.
 - A configurable assistant/personality prompt.
 - Support for OpenAI-compatible LLM providers.
+- Support for Home Assistant's built-in Assist LLM tools when the configured provider supports OpenAI-compatible tool calls.
 - Optional context injection from Home Assistant entities.
 - Optional speaker identity context.
 - Optional conversation recall integration.
@@ -60,6 +98,7 @@ The initial project should not:
 - Require LLM Vision.
 - Directly modify `house_memory.json` in the first release.
 - Attempt to replace all Home Assistant LLM integrations.
+- Implement custom Home Assistant service-call parsing when the built-in Assist LLM tools can be used.
 - Depend on one specific LLM provider.
 - Become a monolithic “everything AI” integration.
 
@@ -230,7 +269,7 @@ House Personality should consume vision summaries; it should not perform camera 
 
 The LLM provider is the backend that receives the final prompt and returns a response.
 
-The first provider should be OpenAI-compatible.
+The first provider is OpenAI-compatible.
 
 This allows support for:
 
@@ -243,6 +282,12 @@ This allows support for:
 - Other OpenAI-compatible gateways
 
 Provider code must be isolated from prompt/context/memory code.
+
+When a current Home Assistant `ChatLog` is available, House Personality should request Home Assistant's built-in Assist LLM API data and pass the resulting tool definitions to the configured provider in OpenAI-compatible format.
+
+Providers that support tool calls can request exposed-entity state or control actions. House Personality should execute those calls through Home Assistant's `ChatLog` and send the tool results back to the provider for a final spoken response.
+
+The integration should not invent its own Home Assistant service-call parser for home control.
 
 ## Prompt Assembly
 
@@ -387,12 +432,16 @@ The conversation request lifecycle should be:
 4. Read optional identity entity.
 5. Read optional context entity.
 6. Read optional memory entity or memory adapter.
-7. Build final prompt.
-8. Send prompt to configured provider.
-9. Receive provider response.
-10. Return response to Home Assistant Assist.
-11. Log timing and included context sections.
-12. Future phase: store conversation turn or propose memory update.
+7. Read optional vision/event summary entity.
+8. Build final prompt.
+9. If a current ChatLog is available, request Home Assistant's built-in Assist LLM API data.
+10. Convert Home Assistant tools into OpenAI-compatible tool definitions.
+11. Send chat log messages and tools to the configured provider.
+12. If the provider returns tool calls, execute them through `chat_log.async_add_assistant_content(...)`.
+13. Send resulting tool responses back to the provider.
+14. Return the final provider response to Home Assistant Assist.
+15. Log timing and included context sections.
+16. Store memory proposals only when explicitly created through the proposal workflow.
 ```
 
 ## Error Handling
@@ -445,6 +494,8 @@ Prefer keeping:
 
 ### Phase 0: Repository Foundation
 
+Status: Implemented.
+
 Goal:
 
 Create a clean, public, HACS-compatible repository skeleton.
@@ -472,6 +523,8 @@ Acceptance Criteria:
 
 ### Phase 1: Conversation Agent MVP
 
+Status: Implemented.
+
 Goal:
 
 Register House Personality as a Home Assistant conversation agent and return responses from an OpenAI-compatible provider.
@@ -498,6 +551,8 @@ Acceptance Criteria:
 
 ### Phase 2: Entity-Based Context and Identity
 
+Status: Implemented.
+
 Goal:
 
 Add optional entity-based context and speaker identity.
@@ -519,6 +574,8 @@ Acceptance Criteria:
 - No dependency on a specific speaker recognition integration exists.
 
 ### Phase 3: Memory Adapter Foundation
+
+Status: Implemented as read-only entity memory.
 
 Goal:
 
@@ -542,6 +599,8 @@ Acceptance Criteria:
 
 ### Phase 4: Native Voice Assist Recall Adapter
 
+Status: Implemented as an optional read-only service adapter.
+
 Goal:
 
 Integrate with the separate Voice Assist Recall project without making it a hard dependency.
@@ -562,6 +621,8 @@ Acceptance Criteria:
 - Recall errors do not break the conversation.
 
 ### Phase 5: Memory Update Proposal Workflow
+
+Status: Implemented as local proposal storage and explicit services. Approved proposals are not written anywhere by House Personality.
 
 Goal:
 
@@ -585,6 +646,8 @@ Acceptance Criteria:
 
 ### Phase 6: Vision/Event Context Adapter
 
+Status: Implemented as optional read-only entity-based event summary context. Native LLM Vision integration is still future work.
+
 Goal:
 
 Add optional support for recent visual or event context from external integrations.
@@ -593,7 +656,7 @@ Deliverables:
 
 - Vision/event context provider interface.
 - Entity-based event summary adapter.
-- Optional LLM Vision adapter.
+- Placeholder for future LLM Vision adapter only if needed.
 - Prompt builder support for recent event context.
 - Configuration options for enabling/disabling vision context.
 
@@ -604,6 +667,33 @@ Acceptance Criteria:
 - Recent event summaries can be included when configured.
 - Camera analysis is not performed directly by House Personality in this phase.
 - Vision context has strict size limits.
+
+### Conversation Control Compatibility
+
+Status: Implemented after Phase 6.
+
+Goal:
+
+Make the House Personality conversation entity compatible with the current Home Assistant conversation entity and LLM tool APIs so Assist can query and control exposed entities through compatible providers.
+
+Deliverables:
+
+- `_async_handle_message(self, user_input, chat_log)` implementation.
+- `supported_languages` returning `"*"`.
+- `ConversationEntityFeature.CONTROL` support.
+- Home Assistant built-in Assist LLM API data requested through `chat_log.async_provide_llm_data(...)`.
+- OpenAI-compatible tool definitions passed to the configured provider.
+- Provider tool calls executed through `chat_log.async_add_assistant_content(...)`.
+- Final provider response returned through the conversation framework.
+
+Acceptance Criteria:
+
+- Home Assistant can load the integration.
+- The configured agent is selectable in Assist.
+- The "cannot control your home" warning is not shown for the agent.
+- State queries work for entities exposed to Assist.
+- Control requests work when the provider/model emits compatible tool calls.
+- Provider or tool failures return a friendly response instead of crashing.
 
 ### Phase 7: Advanced Provider Support
 
@@ -823,11 +913,11 @@ This advanced example should be documented as optional and not required.
 
 ## Initial Codex Implementation Target
 
-Codex should first implement Phase 0 and Phase 1 only.
+The initial Codex implementation target was Phase 0 and Phase 1 only.
 
-Do not implement memory, speaker recognition, or vision in the first commit beyond placeholder interfaces.
+That target is complete. Memory, recall, proposal, and event-summary work has since been added as optional adapters. Speaker recognition, native LLM Vision, camera analysis, provider fallback chains, multiple provider profiles, streaming, and direct memory writing remain out of scope until explicitly requested.
 
-Initial implementation should prove:
+The initial implementation proved:
 
 ```text
 Installable custom integration
@@ -838,7 +928,7 @@ Prompt sent to OpenAI-compatible endpoint
 Response returned to Assist
 ```
 
-Once that is stable, later phases can add identity, memory, and vision adapters.
+Future implementation should continue to preserve the same boundaries: optional adapters, no private household assumptions, no automatic memory writes, and no custom home-control parser when Home Assistant's Assist LLM tools are available.
 
 ## Long-Term Vision
 
