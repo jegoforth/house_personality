@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import logging
 from typing import Any
 
@@ -9,7 +10,12 @@ import async_timeout
 
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
-from .base import ProviderError, ProviderResponse
+from .base import (
+    ProviderChatResponse,
+    ProviderError,
+    ProviderResponse,
+    ProviderToolCall,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -42,6 +48,19 @@ class OpenAICompatibleProvider:
         messages: list[dict[str, str]],
     ) -> ProviderResponse:
         """Generate a chat completion response."""
+        response = await self.async_generate_chat_completion(messages)
+        if response.tool_calls:
+            raise ProviderError("Provider returned tool calls for a text-only request")
+        if not response.content:
+            raise ProviderError("Provider returned an empty response")
+        return ProviderResponse(content=response.content.strip())
+
+    async def async_generate_chat_completion(
+        self,
+        messages: list[dict[str, Any]],
+        tools: list[dict[str, Any]] | None = None,
+    ) -> ProviderChatResponse:
+        """Generate a chat completion response with optional tools."""
         url = _chat_completions_url(self._base_url)
         session = async_get_clientsession(self._hass)
         headers = {"Content-Type": "application/json"}
@@ -53,13 +72,18 @@ class OpenAICompatibleProvider:
             "messages": messages,
             "temperature": self._temperature,
         }
+        if tools:
+            payload["tools"] = tools
+            payload["tool_choice"] = "auto"
 
         if self._debug_logging:
             _LOGGER.debug(
-                "Sending chat completion request to provider: model=%s url=%s messages=%s",
+                "Sending chat completion request to provider: "
+                "model=%s url=%s messages=%s tools=%s",
                 self._model,
                 url,
                 len(messages),
+                len(tools or []),
             )
 
         try:
@@ -76,7 +100,7 @@ class OpenAICompatibleProvider:
 
                     try:
                         data = await response.json()
-                        content = data["choices"][0]["message"]["content"]
+                        message = data["choices"][0]["message"]
                     except Exception as err:
                         raise ProviderError(
                             "Provider returned an unexpected response"
@@ -88,10 +112,18 @@ class OpenAICompatibleProvider:
         except Exception as err:
             raise ProviderError("Provider request failed") from err
 
-        if not isinstance(content, str) or not content.strip():
+        content = message.get("content")
+        if content is not None and not isinstance(content, str):
+            raise ProviderError("Provider returned invalid response content")
+
+        tool_calls = _parse_tool_calls(message.get("tool_calls"))
+        if (not content or not content.strip()) and not tool_calls:
             raise ProviderError("Provider returned an empty response")
 
-        return ProviderResponse(content=content.strip())
+        return ProviderChatResponse(
+            content=content.strip() if isinstance(content, str) else None,
+            tool_calls=tool_calls,
+        )
 
 
 def _chat_completions_url(base_url: str) -> str:
@@ -107,3 +139,45 @@ def _truncate(value: str, max_length: int) -> str:
     if len(value) <= max_length:
         return value
     return f"{value[:max_length]}..."
+
+
+def _parse_tool_calls(value: Any) -> list[ProviderToolCall]:
+    """Parse OpenAI-compatible tool calls."""
+    if not value:
+        return []
+    if not isinstance(value, list):
+        raise ProviderError("Provider returned invalid tool calls")
+
+    tool_calls: list[ProviderToolCall] = []
+    for item in value:
+        if not isinstance(item, dict):
+            raise ProviderError("Provider returned invalid tool call")
+
+        function = item.get("function")
+        if not isinstance(function, dict):
+            raise ProviderError("Provider returned invalid function call")
+
+        name = function.get("name")
+        arguments = function.get("arguments", "{}")
+        if not isinstance(name, str) or not name:
+            raise ProviderError("Provider returned unnamed function call")
+        if not isinstance(arguments, str):
+            raise ProviderError("Provider returned invalid function arguments")
+
+        try:
+            parsed_arguments = json.loads(arguments or "{}")
+        except json.JSONDecodeError as err:
+            raise ProviderError("Provider returned malformed function arguments") from err
+
+        if not isinstance(parsed_arguments, dict):
+            raise ProviderError("Provider returned non-object function arguments")
+
+        tool_calls.append(
+            ProviderToolCall(
+                tool_call_id=str(item.get("id") or name),
+                name=name,
+                arguments=parsed_arguments,
+            )
+        )
+
+    return tool_calls

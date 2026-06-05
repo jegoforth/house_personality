@@ -23,6 +23,7 @@ This project is intended to be reusable and community-friendly. It does not incl
   - optional vision/event summary entity
   - debug logging
 - Calls an OpenAI-compatible `/chat/completions` endpoint.
+- Passes Home Assistant's built-in Assist LLM tools to compatible providers so exposed entities can be queried or controlled.
 - Builds prompts from the configured personality prompt, optional entity context, optional speaker identity, optional memory/recall context, optional vision/event summary context, and current user message.
 - Returns friendly fallback responses when the provider fails.
 - Provides memory update proposal services for explicit review.
@@ -87,6 +88,8 @@ The UI config flow asks for:
 ## Provider Setup
 
 House Personality expects an OpenAI-compatible chat completions API.
+
+For home control through Assist, the provider/model must support OpenAI-compatible tool calls. House Personality passes Home Assistant's built-in Assist tools to the provider and executes returned tool calls through Home Assistant's conversation chat log.
 
 The configured base URL is normalized as follows:
 

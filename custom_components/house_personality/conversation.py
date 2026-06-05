@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import logging
 import time
 from typing import Any, Literal
@@ -10,7 +11,8 @@ from homeassistant.components import conversation
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_API_KEY, CONF_MODEL, CONF_TIMEOUT
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers import intent
+from homeassistant.helpers import intent, llm
+from voluptuous_openapi import convert
 
 from .const import (
     CONF_ASSISTANT_NAME,
@@ -42,6 +44,7 @@ from .const import (
     DEFAULT_TEMPERATURE,
     DEFAULT_TIMEOUT,
     DEFAULT_VISION_MAX_CHARS,
+    DOMAIN,
     FRIENDLY_PROVIDER_ERROR,
 )
 from .context.entity_context import async_get_entity_context
@@ -56,6 +59,8 @@ from .providers import OpenAICompatibleProvider, ProviderError
 from .vision import async_get_entity_vision_context
 
 _LOGGER = logging.getLogger(__name__)
+
+_MAX_TOOL_ITERATIONS = 10
 
 
 async def async_setup_entry(
@@ -221,16 +226,25 @@ class HousePersonalityConversationAgent(conversation.ConversationEntity):
         )
 
         started = time.monotonic()
-        provider_succeeded = False
         try:
-            provider_response = await provider.async_generate_response(messages)
-            speech = provider_response.content
-            provider_succeeded = True
+            if chat_log is not None:
+                speech = await self._async_generate_chat_log_response(
+                    user_input=user_input,
+                    chat_log=chat_log,
+                    provider=provider,
+                    prompt_context=prompt_context,
+                    debug_logging=debug_logging,
+                )
+            else:
+                provider_response = await provider.async_generate_response(messages)
+                speech = provider_response.content
             if debug_logging:
                 _LOGGER.debug(
                     "House Personality provider completed in %.2fs",
                     time.monotonic() - started,
                 )
+        except conversation.ConverseError as err:
+            return err.as_conversation_result()
         except ProviderError as err:
             _LOGGER.warning("House Personality provider failed: %s", err)
             speech = FRIENDLY_PROVIDER_ERROR
@@ -238,7 +252,12 @@ class HousePersonalityConversationAgent(conversation.ConversationEntity):
             _LOGGER.exception("Unexpected House Personality conversation failure")
             speech = FRIENDLY_PROVIDER_ERROR
 
-        if provider_succeeded:
+        if (
+            chat_log is not None
+            and getattr(chat_log.content[-1], "role", None) != "assistant"
+        ):
+            _add_assistant_response_to_chat_log(chat_log, user_input, speech)
+        elif chat_log is None and speech != FRIENDLY_PROVIDER_ERROR:
             _add_assistant_response_to_chat_log(chat_log, user_input, speech)
 
         response = intent.IntentResponse(language=user_input.language)
@@ -254,6 +273,79 @@ class HousePersonalityConversationAgent(conversation.ConversationEntity):
                 else getattr(user_input, "continue_conversation", False)
             ),
         )
+
+    async def _async_generate_chat_log_response(
+        self,
+        *,
+        user_input: conversation.ConversationInput,
+        chat_log: conversation.ChatLog,
+        provider: OpenAICompatibleProvider,
+        prompt_context: PromptContext,
+        debug_logging: bool,
+    ) -> str:
+        """Generate a provider response using the current ChatLog tool API."""
+        try:
+            await chat_log.async_provide_llm_data(
+                user_input.as_llm_context(DOMAIN),
+                llm.LLM_API_ASSIST,
+                _system_prompt_from_prompt_context(prompt_context),
+                user_input.extra_system_prompt,
+            )
+        except conversation.ConverseError:
+            raise
+        except Exception as err:
+            raise ProviderError("Error preparing Home Assistant Assist tools") from err
+
+        tools = _format_openai_tools(chat_log)
+        if debug_logging:
+            _LOGGER.debug(
+                "House Personality Assist LLM API status: enabled=%s tools=%s",
+                bool(chat_log.llm_api),
+                len(tools),
+            )
+
+        for iteration in range(_MAX_TOOL_ITERATIONS):
+            response = await provider.async_generate_chat_completion(
+                _chat_log_to_openai_messages(chat_log),
+                tools=tools,
+            )
+
+            if response.tool_calls:
+                if debug_logging:
+                    _LOGGER.debug(
+                        "House Personality provider requested %s tool call(s) "
+                        "on iteration %s",
+                        len(response.tool_calls),
+                        iteration + 1,
+                    )
+                async for _tool_result in chat_log.async_add_assistant_content(
+                    conversation.AssistantContent(
+                        agent_id=user_input.agent_id,
+                        content=response.content,
+                        tool_calls=[
+                            llm.ToolInput(
+                                id=tool_call.tool_call_id,
+                                tool_name=tool_call.name,
+                                tool_args=tool_call.arguments,
+                            )
+                            for tool_call in response.tool_calls
+                        ],
+                    )
+                ):
+                    pass
+                continue
+
+            if response.content:
+                _add_assistant_response_to_chat_log(
+                    chat_log,
+                    user_input,
+                    response.content,
+                )
+                return response.content
+
+            raise ProviderError("Provider returned an empty response")
+
+        raise ProviderError("Provider did not finish tool use")
 
 
 def _entry_values(entry: ConfigEntry) -> dict[str, Any]:
@@ -309,3 +401,87 @@ def _add_assistant_response_to_chat_log(
             content=speech,
         )
     )
+
+
+def _system_prompt_from_prompt_context(context: PromptContext) -> str:
+    """Build the system prompt without duplicating the user message."""
+    return "\n\n".join(
+        message["content"]
+        for message in build_chat_messages(context)
+        if message["role"] == "system"
+    )
+
+
+def _format_openai_tools(chat_log: conversation.ChatLog) -> list[dict[str, Any]]:
+    """Format Home Assistant LLM tools for OpenAI-compatible providers."""
+    if not chat_log.llm_api:
+        return []
+
+    return [
+        {
+            "type": "function",
+            "function": {
+                "name": tool.name,
+                "description": tool.description or "",
+                "parameters": convert(
+                    tool.parameters,
+                    custom_serializer=chat_log.llm_api.custom_serializer,
+                ),
+            },
+        }
+        for tool in chat_log.llm_api.tools
+    ]
+
+
+def _chat_log_to_openai_messages(
+    chat_log: conversation.ChatLog,
+) -> list[dict[str, Any]]:
+    """Convert Home Assistant chat log content to chat completion messages."""
+    messages: list[dict[str, Any]] = []
+    for content in chat_log.content:
+        role = getattr(content, "role", None)
+        if role == "system":
+            messages.append({"role": "system", "content": content.content})
+        elif role == "user":
+            messages.append({"role": "user", "content": content.content})
+        elif role == "assistant":
+            messages.append(_assistant_content_to_openai_message(content))
+        elif role == "tool_result":
+            messages.append(
+                {
+                    "role": "tool",
+                    "tool_call_id": content.tool_call_id,
+                    "content": _json_content(content.tool_result),
+                }
+            )
+    return messages
+
+
+def _assistant_content_to_openai_message(content: Any) -> dict[str, Any]:
+    """Convert assistant chat log content to an OpenAI-compatible message."""
+    message: dict[str, Any] = {
+        "role": "assistant",
+        "content": content.content,
+    }
+
+    if content.tool_calls:
+        message["tool_calls"] = [
+            {
+                "id": tool_call.id,
+                "type": "function",
+                "function": {
+                    "name": tool_call.tool_name,
+                    "arguments": json.dumps(tool_call.tool_args),
+                },
+            }
+            for tool_call in content.tool_calls
+        ]
+
+    return message
+
+
+def _json_content(value: Any) -> str:
+    """Return a JSON string for tool result content."""
+    if isinstance(value, str):
+        return value
+    return json.dumps(value, default=str)

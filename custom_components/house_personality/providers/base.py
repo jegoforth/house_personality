@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Protocol
+from typing import Any, Protocol
 
 
 @dataclass(frozen=True, slots=True)
@@ -11,6 +11,23 @@ class ProviderResponse:
     """Normalized provider response."""
 
     content: str
+
+
+@dataclass(frozen=True, slots=True)
+class ProviderToolCall:
+    """Normalized provider tool call."""
+
+    tool_call_id: str
+    name: str
+    arguments: dict[str, Any]
+
+
+@dataclass(frozen=True, slots=True)
+class ProviderChatResponse:
+    """Normalized provider chat completion response."""
+
+    content: str | None
+    tool_calls: list[ProviderToolCall]
 
 
 class ProviderError(Exception):
@@ -25,4 +42,3 @@ class ChatProvider(Protocol):
         messages: list[dict[str, str]],
     ) -> ProviderResponse:
         """Generate a response from provider messages."""
-
