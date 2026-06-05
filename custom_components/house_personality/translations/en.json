@@ -2,6 +2,42 @@
   "title": "House Personality",
   "config": {
     "step": {
+      "house_personality_setup": {
+        "title": "Set up House Personality",
+        "description": "Configure an OpenAI-compatible provider and the assistant personality.",
+        "data": {
+          "assistant_name": "Assistant display name",
+          "base_url": "Provider base URL",
+          "api_key": "API key",
+          "model": "Model",
+          "temperature": "Temperature",
+          "timeout": "Timeout",
+          "personality_prompt": "Personality prompt",
+          "context_entity": "Context entity",
+          "identity_entity": "Identity entity",
+          "memory_entity": "Memory entity",
+          "recall_enabled": "Use Voice Assist Recall",
+          "recall_service_domain": "Recall service domain",
+          "recall_service_name": "Recall service name",
+          "recall_limit": "Recall result limit",
+          "recall_include_turns": "Include supporting recall turns",
+          "vision_enabled": "Use vision/event summary context",
+          "vision_entity": "Vision/event summary entity",
+          "debug_logging": "Debug logging"
+        },
+        "data_description": {
+          "context_entity": "Optional entity that provides home or household context.",
+          "identity_entity": "Optional entity that identifies the current speaker.",
+          "memory_entity": "Optional entity that provides read-only memory context.",
+          "recall_enabled": "Enable optional read-only conversation recall from a configured service.",
+          "recall_service_domain": "Service domain for the recall adapter.",
+          "recall_service_name": "Service name for the recall adapter.",
+          "recall_limit": "Maximum number of recall items to request.",
+          "recall_include_turns": "Allow the recall service to include supporting conversation turns.",
+          "vision_enabled": "Enable optional read-only event or vision summary context.",
+          "vision_entity": "Optional entity that provides recent event or vision summary text."
+        }
+      },
       "user": {
         "title": "Set up House Personality",
         "description": "Configure an OpenAI-compatible provider and the assistant personality.",

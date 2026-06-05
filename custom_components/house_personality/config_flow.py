@@ -57,13 +57,20 @@ class HousePersonalityConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         user_input: dict[str, Any] | None = None,
     ) -> config_entries.FlowResult:
         """Handle the initial step."""
+        return await self.async_step_house_personality_setup(user_input)
+
+    async def async_step_house_personality_setup(
+        self,
+        user_input: dict[str, Any] | None = None,
+    ) -> config_entries.FlowResult:
+        """Handle House Personality setup."""
         errors: dict[str, str] = {}
 
         if user_input is not None:
             errors = _validate_user_input(user_input)
             if errors:
                 return self.async_show_form(
-                    step_id="user",
+                    step_id="house_personality_setup",
                     data_schema=_config_schema(user_input),
                     errors=errors,
                 )
@@ -76,7 +83,7 @@ class HousePersonalityConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             )
 
         return self.async_show_form(
-            step_id="user",
+            step_id="house_personality_setup",
             data_schema=_config_schema(),
             errors=errors,
         )
