@@ -61,6 +61,14 @@ from .vision import async_get_entity_vision_context
 _LOGGER = logging.getLogger(__name__)
 
 _MAX_TOOL_ITERATIONS = 10
+_HOME_ASSISTANT_TOOL_INSTRUCTIONS = """
+Home Assistant tool use rules:
+- For requests to turn on, turn off, toggle, set, change, open, close, lock, unlock, start, stop, or otherwise control home devices, call the available Home Assistant tools.
+- For requests to verify, check, confirm, or report the current state of home devices, call the available Home Assistant tools.
+- Do not say a Home Assistant action was performed unless a tool call was made and the tool result supports that claim.
+- Do not say a current state was verified unless a tool call returned current state information.
+- If a needed tool is unavailable or fails, say that clearly instead of claiming success.
+""".strip()
 
 
 async def async_setup_entry(
@@ -299,9 +307,10 @@ class HousePersonalityConversationAgent(conversation.ConversationEntity):
         tools = _format_openai_tools(chat_log)
         if debug_logging:
             _LOGGER.debug(
-                "House Personality Assist LLM API status: enabled=%s tools=%s",
+                "House Personality Assist LLM API status: enabled=%s tools=%s tool_names=%s",
                 bool(chat_log.llm_api),
                 len(tools),
+                _tool_names(tools),
             )
 
         for iteration in range(_MAX_TOOL_ITERATIONS):
@@ -314,10 +323,12 @@ class HousePersonalityConversationAgent(conversation.ConversationEntity):
                 if debug_logging:
                     _LOGGER.debug(
                         "House Personality provider requested %s tool call(s) "
-                        "on iteration %s",
+                        "on iteration %s: %s",
                         len(response.tool_calls),
                         iteration + 1,
+                        [tool_call.name for tool_call in response.tool_calls],
                     )
+                tool_results = 0
                 async for _tool_result in chat_log.async_add_assistant_content(
                     conversation.AssistantContent(
                         agent_id=user_input.agent_id,
@@ -332,10 +343,21 @@ class HousePersonalityConversationAgent(conversation.ConversationEntity):
                         ],
                     )
                 ):
-                    pass
+                    tool_results += 1
+                if debug_logging:
+                    _LOGGER.debug(
+                        "House Personality executed %s Home Assistant tool result(s)",
+                        tool_results,
+                    )
                 continue
 
             if response.content:
+                if debug_logging:
+                    _LOGGER.debug(
+                        "House Personality provider returned final text without "
+                        "tool calls on iteration %s",
+                        iteration + 1,
+                    )
                 _add_assistant_response_to_chat_log(
                     chat_log,
                     user_input,
@@ -405,11 +427,13 @@ def _add_assistant_response_to_chat_log(
 
 def _system_prompt_from_prompt_context(context: PromptContext) -> str:
     """Build the system prompt without duplicating the user message."""
-    return "\n\n".join(
+    system_parts = [
         message["content"]
         for message in build_chat_messages(context)
         if message["role"] == "system"
-    )
+    ]
+    system_parts.append(_HOME_ASSISTANT_TOOL_INSTRUCTIONS)
+    return "\n\n".join(system_parts)
 
 
 def _format_openai_tools(chat_log: conversation.ChatLog) -> list[dict[str, Any]]:
@@ -431,6 +455,16 @@ def _format_openai_tools(chat_log: conversation.ChatLog) -> list[dict[str, Any]]
         }
         for tool in chat_log.llm_api.tools
     ]
+
+
+def _tool_names(tools: list[dict[str, Any]]) -> list[str]:
+    """Return non-sensitive OpenAI tool names for debug logging."""
+    names: list[str] = []
+    for tool in tools:
+        function = tool.get("function")
+        if isinstance(function, dict) and isinstance(function.get("name"), str):
+            names.append(function["name"])
+    return names
 
 
 def _chat_log_to_openai_messages(
