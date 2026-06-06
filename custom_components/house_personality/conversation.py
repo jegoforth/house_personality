@@ -130,6 +130,17 @@ Home Assistant tool use rules:
   state information.
 - If a needed tool is unavailable or fails, say that clearly instead of claiming success.
 """.strip()
+_HOME_ASSISTANT_TOOLS_DISABLED_INSTRUCTIONS = """
+Home Assistant tools are disabled for this provider request:
+- You cannot inspect live Home Assistant entity states.
+- You cannot turn devices on or off, change device settings, or perform other
+  Home Assistant actions.
+- If the user asks for live state, verification, or home control, say that
+  Home Assistant tools are disabled and the request cannot be completed from
+  this conversation agent right now.
+- Do not say "one moment", "let me check", "done", or otherwise imply that a
+  Home Assistant state check or action was performed.
+""".strip()
 
 
 async def async_setup_entry(
@@ -515,6 +526,8 @@ def _system_prompt_from_prompt_context(
     ]
     if include_tool_instructions:
         system_parts.append(_HOME_ASSISTANT_TOOL_INSTRUCTIONS)
+    else:
+        system_parts.append(_HOME_ASSISTANT_TOOLS_DISABLED_INSTRUCTIONS)
     return "\n\n".join(system_parts)
 
 

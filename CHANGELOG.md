@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.2.1 - Provider Tools Disabled Behavior
+
+- Added explicit prompt instructions for the tools-disabled mode.
+- Prevented the assistant from claiming live Home Assistant checks or actions when provider tools are disabled.
+
 ## v0.2.0 - Provider Configuration
 
 - Added single-profile provider tuning for maximum response tokens.

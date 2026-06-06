@@ -55,6 +55,8 @@ Use this checklist before tagging a private test release or publishing the repos
 - [ ] Change maximum response tokens to a small value and confirm responses are capped or shortened by the provider.
 - [ ] Return maximum response tokens to `0`.
 - [ ] Disable provider tools and confirm non-control conversation still works.
+- [ ] With provider tools disabled, ask for live entity state and confirm the assistant says tools are disabled instead of guessing.
+- [ ] With provider tools disabled, ask for device control and confirm no action is performed and the assistant says tools are disabled.
 - [ ] Re-enable provider tools and confirm state queries or control work again.
 - [ ] Confirm `tool_choice=auto`, `parallel_tool_calls=false`, and `response_format=default` work with the primary provider.
 - [ ] Set `context_entity` to a helper or sensor with generic home context.
