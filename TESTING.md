@@ -2,9 +2,24 @@
 
 Use this checklist before tagging a private test release or publishing the repository.
 
+## Release Checklist
+
+- [ ] Confirm `manifest.json` and `const.py` use the same version.
+- [ ] Confirm `hacs.json` declares the intended minimum Home Assistant version.
+- [ ] Run JSON validation for `hacs.json`, `manifest.json`, `strings.json`, and `translations/en.json`.
+- [ ] Run Python compile checks for `custom_components/house_personality`.
+- [ ] Run `git diff --check`.
+- [ ] Search the repository for private names, entity IDs, prompts, secrets, or household-specific examples.
+- [ ] Commit the release-readiness changes.
+- [ ] Push `main`.
+- [ ] Create and push a matching Git tag, such as `v0.1.2`.
+- [ ] Create a GitHub Release from the tag so HACS shows the release version instead of a commit hash.
+- [ ] Refresh HACS and confirm the displayed version matches the GitHub Release tag.
+
 ## Install And Load
 
-- [ ] Copy the full `custom_components/house_personality` directory into Home Assistant.
+- [ ] Install or update House Personality through HACS.
+- [ ] If testing a manual install, copy the full `custom_components/house_personality` directory into Home Assistant.
 - [ ] Confirm these files exist in Home Assistant:
   - [ ] `custom_components/house_personality/manifest.json`
   - [ ] `custom_components/house_personality/config_flow.py`

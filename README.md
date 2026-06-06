@@ -50,9 +50,7 @@ The first version intentionally does not implement:
 
 ## HACS Installation
 
-HACS support is planned for public testing.
-
-When available:
+House Personality can be installed as a custom HACS integration while the repository is private or in public testing.
 
 1. Add this repository as a custom HACS repository.
 2. Select the `Integration` category.
@@ -226,6 +224,8 @@ House Personality exposes these services:
 ## Testing
 
 See [TESTING.md](TESTING.md) for a repeatable manual test checklist covering installation, config flow, options flow, text Assist, voice Assist, tool control, recall, diagnostics, and privacy checks.
+
+See [CHANGELOG.md](CHANGELOG.md) for private test release notes.
 
 ## Troubleshooting
 
