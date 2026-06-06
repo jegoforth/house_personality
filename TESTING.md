@@ -8,6 +8,7 @@ Use this checklist before tagging a private test release or publishing the repos
 - [ ] Confirm `hacs.json` declares the intended minimum Home Assistant version.
 - [ ] Run JSON validation for `hacs.json`, `manifest.json`, `strings.json`, and `translations/en.json`.
 - [ ] Run Python compile checks for `custom_components/house_personality`.
+- [ ] Run `uv run python -m unittest discover -s tests`.
 - [ ] Run `git diff --check`.
 - [ ] Search the repository for private names, entity IDs, prompts, secrets, or household-specific examples.
 - [ ] Commit the release-readiness changes.

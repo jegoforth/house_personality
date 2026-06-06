@@ -131,6 +131,16 @@ Partially implemented as single-profile provider tuning.
 - Configurable OpenAI-compatible response format.
 - Provider fallback chains, multiple provider profiles, and streaming remain out of scope until explicitly requested.
 
+### Phase 8: Diagnostics, Testing, and Hardening
+
+Partially implemented.
+
+- Added lightweight unit tests that can run without a full Home Assistant runtime.
+- Prompt assembly tests cover optional prompt sections and section metadata.
+- Provider tests cover OpenAI-compatible payload construction for provider options.
+- Diagnostics tests cover secret and configured entity redaction.
+- Conversation policy tests cover tools-disabled and `tool_choice=none` behavior.
+
 ## Out of Scope Until Explicitly Requested
 
 Do not implement these next unless requested:
@@ -185,7 +195,7 @@ Future work may add:
 - Provider test service.
 - Prompt preview service.
 - Better automated tests around provider tool-call handling.
-- Diagnostics and test hardening.
+- Additional diagnostics and test hardening.
 - HACS/release validation.
 - LLM Vision native adapter.
 - Multiple provider profiles.

@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Added lightweight unit tests for prompt assembly, provider payload construction, diagnostics redaction, and no-tools conversation policy.
+
 ## v0.2.2 - Tool Choice None Behavior
 
 - Treat `tool_choice=none` as an effective no-tools mode.

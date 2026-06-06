@@ -24,6 +24,7 @@ Implemented:
 - Memory proposal services with explicit approve/reject workflow.
 - Optional read-only vision/event summary entity.
 - Single-profile provider tuning for max tokens, tool behavior, and response format.
+- Lightweight unit tests for prompt assembly, provider payload construction, diagnostics redaction, and no-tools policy.
 - Diagnostics with secret redaction.
 
 Still not implemented:
@@ -726,6 +727,8 @@ Acceptance Criteria:
 
 ### Phase 8: Diagnostics, Testing, and Hardening
 
+Status: Partially implemented.
+
 Goal:
 
 Prepare the integration for broader public use.
@@ -733,9 +736,11 @@ Prepare the integration for broader public use.
 Deliverables:
 
 - Diagnostics support with redaction.
-- Unit tests for prompt builder.
-- Unit tests for provider adapter.
+- Unit tests for prompt builder. Implemented for prompt assembly.
+- Unit tests for provider adapter. Implemented for payload construction.
 - Unit tests for context handling.
+- Unit tests for diagnostics redaction. Implemented.
+- Unit tests for no-tools conversation policy. Implemented.
 - Linting.
 - Hassfest validation if applicable.
 - GitHub issue templates.

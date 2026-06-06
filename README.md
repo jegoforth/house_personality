@@ -249,6 +249,12 @@ House Personality exposes these services:
 
 See [TESTING.md](TESTING.md) for a repeatable manual test checklist covering installation, config flow, options flow, text Assist, voice Assist, tool control, recall, diagnostics, and privacy checks.
 
+Run lightweight unit tests from the repository root:
+
+```bash
+uv run python -m unittest discover -s tests
+```
+
 See [CHANGELOG.md](CHANGELOG.md) for private test release notes.
 
 ## Troubleshooting

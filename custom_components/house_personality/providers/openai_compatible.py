@@ -75,19 +75,16 @@ class OpenAICompatibleProvider:
         if self._api_key:
             headers["Authorization"] = f"Bearer {self._api_key}"
 
-        payload: dict[str, Any] = {
-            "model": self._model,
-            "messages": messages,
-            "temperature": self._temperature,
-        }
-        if self._max_tokens > 0:
-            payload["max_tokens"] = self._max_tokens
-        if self._response_format != "default":
-            payload["response_format"] = {"type": self._response_format}
-        if tools:
-            payload["tools"] = tools
-            payload["tool_choice"] = self._tool_choice
-            payload["parallel_tool_calls"] = self._parallel_tool_calls
+        payload = _build_chat_completion_payload(
+            model=self._model,
+            messages=messages,
+            temperature=self._temperature,
+            max_tokens=self._max_tokens,
+            tools=tools,
+            tool_choice=self._tool_choice,
+            parallel_tool_calls=self._parallel_tool_calls,
+            response_format=self._response_format,
+        )
 
         if self._debug_logging:
             _LOGGER.debug(
@@ -150,6 +147,34 @@ def _chat_completions_url(base_url: str) -> str:
     if normalized.endswith("/chat/completions"):
         return normalized
     return f"{normalized}/chat/completions"
+
+
+def _build_chat_completion_payload(
+    *,
+    model: str,
+    messages: list[dict[str, Any]],
+    temperature: float,
+    max_tokens: int,
+    tools: list[dict[str, Any]] | None,
+    tool_choice: str,
+    parallel_tool_calls: bool,
+    response_format: str,
+) -> dict[str, Any]:
+    """Build an OpenAI-compatible chat completions payload."""
+    payload: dict[str, Any] = {
+        "model": model,
+        "messages": messages,
+        "temperature": temperature,
+    }
+    if max_tokens > 0:
+        payload["max_tokens"] = max_tokens
+    if response_format != "default":
+        payload["response_format"] = {"type": response_format}
+    if tools:
+        payload["tools"] = tools
+        payload["tool_choice"] = tool_choice
+        payload["parallel_tool_calls"] = parallel_tool_calls
+    return payload
 
 
 def _truncate(value: str, max_length: int) -> str:
