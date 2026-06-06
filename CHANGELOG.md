@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.2.2 - Tool Choice None Behavior
+
+- Treat `tool_choice=none` as an effective no-tools mode.
+- Prevent live state or home-control claims when `tool_choice=none` is selected.
+- Document that parallel tool calls may cause stale verification and should remain disabled unless tested.
+
 ## v0.2.1 - Provider Tools Disabled Behavior
 
 - Added explicit prompt instructions for the tools-disabled mode.

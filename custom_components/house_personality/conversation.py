@@ -307,14 +307,13 @@ class HousePersonalityConversationAgent(conversation.ConversationEntity):
         started = time.monotonic()
         try:
             if chat_log is not None:
+                provider_tools_enabled = _provider_tools_enabled(values)
                 speech = await self._async_generate_chat_log_response(
                     user_input=user_input,
                     chat_log=chat_log,
                     provider=provider,
                     prompt_context=prompt_context,
-                    tools_enabled=bool(
-                        values.get(CONF_TOOLS_ENABLED, DEFAULT_TOOLS_ENABLED)
-                    ),
+                    tools_enabled=provider_tools_enabled,
                     debug_logging=debug_logging,
                 )
             else:
@@ -468,6 +467,13 @@ def _entry_values(entry: ConfigEntry) -> dict[str, Any]:
 def _entry_value(entry: ConfigEntry, key: str, default: Any) -> Any:
     """Return a merged config value."""
     return _entry_values(entry).get(key, default)
+
+
+def _provider_tools_enabled(values: dict[str, Any]) -> bool:
+    """Return whether provider tools should be sent for this request."""
+    if not bool(values.get(CONF_TOOLS_ENABLED, DEFAULT_TOOLS_ENABLED)):
+        return False
+    return values.get(CONF_TOOL_CHOICE, DEFAULT_TOOL_CHOICE) != "none"
 
 
 def _combine_memory_contexts(

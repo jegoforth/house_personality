@@ -58,6 +58,8 @@ Use this checklist before tagging a private test release or publishing the repos
 - [ ] With provider tools disabled, ask for live entity state and confirm the assistant says tools are disabled instead of guessing.
 - [ ] With provider tools disabled, ask for device control and confirm no action is performed and the assistant says tools are disabled.
 - [ ] Re-enable provider tools and confirm state queries or control work again.
+- [ ] Set `tool_choice` to `none` and confirm live state/control requests are refused instead of guessed.
+- [ ] Set `tool_choice` back to `auto`.
 - [ ] Confirm `tool_choice=auto`, `parallel_tool_calls=false`, and `response_format=default` work with the primary provider.
 - [ ] Set `context_entity` to a helper or sensor with generic home context.
 - [ ] Leave `identity_entity` blank unless a reliable speaker identity source exists.
@@ -148,6 +150,7 @@ House Personality waiting 1.0s for Home Assistant state to settle after mutating
 - [ ] Confirm logs include useful technical detail without API keys.
 - [ ] If a provider rejects tool schemas, disable provider tools and confirm simple non-control conversation works.
 - [ ] If a provider rejects `response_format`, set response format back to `default`.
+- [ ] If parallel tool calls cause stale verification, leave `parallel_tool_calls` disabled.
 
 ## Diagnostics And Privacy
 

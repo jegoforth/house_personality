@@ -107,7 +107,7 @@ Home Assistant may show raw option keys for some selector-based fields. The fiel
 | --- | --- |
 | `max_tokens` | Optional response-token cap. `0` uses the provider default. |
 | `tools_enabled` | Enables passing Home Assistant Assist tools to the provider. |
-| `tool_choice` | Tool choice sent when tools are enabled: `auto`, `required`, or `none`. |
+| `tool_choice` | Tool choice mode: `auto`, `required`, or `none`. `none` disables provider tool passing for the request. |
 | `parallel_tool_calls` | Allows compatible providers to request parallel tool calls. |
 | `response_format` | Optional provider response format: `default`, `text`, or `json_object`. |
 | `context_entity` | Optional helper or sensor with home context. |
@@ -209,7 +209,7 @@ Provider compatibility options:
 
 - Keep **Use Home Assistant tools** enabled for state queries and device control.
 - Disable **Use Home Assistant tools** if a provider rejects tool schemas or does not support tool calling.
-- Keep **Tool choice** set to `auto` for normal use. Use `none` to send tools but ask the provider not to call them. Use `required` only when testing a provider's tool-call behavior.
+- Keep **Tool choice** set to `auto` for normal use. Use `none` to disable provider tool passing for the request. Use `required` only when testing a provider's tool-call behavior.
 - Keep **Parallel tool calls** disabled unless the provider and target Home Assistant actions have been tested with parallel tool execution.
 - Keep **Response format** set to `default` for broad compatibility. `json_object` is useful only for models and prompts that are explicitly expected to return JSON.
 - Set **Maximum response tokens** to `0` to let the provider choose its default, or a positive number to cap response length.
