@@ -8,7 +8,7 @@ Build a reusable, HACS-friendly Home Assistant custom integration that provides 
 
 The implementation has moved beyond the initial Phase 0/1 MVP. Phases 0 through 6 are implemented as small optional adapters, and the conversation agent now advertises Home Assistant control support and passes Home Assistant's built-in Assist LLM tools to compatible OpenAI-style providers.
 
-The next work should focus on load testing, Assist control testing, provider/tool-call compatibility, documentation cleanup, and release hardening.
+The next work should focus on provider compatibility testing, diagnostics and test hardening, and release readiness.
 
 ## Confirmed Decisions
 
@@ -119,6 +119,17 @@ Implemented after Phase 6.
 - OpenAI-compatible tools are passed to the configured provider when a current `ChatLog` is available.
 - Provider tool calls are executed through `chat_log.async_add_assistant_content(...)`.
 - Provider responses are returned through Assist after tool execution.
+
+### Phase 7: Provider Configuration
+
+Partially implemented as single-profile provider tuning.
+
+- Configurable maximum response tokens.
+- Configurable tool enable/disable switch.
+- Configurable OpenAI-compatible tool choice.
+- Configurable parallel tool-call behavior.
+- Configurable OpenAI-compatible response format.
+- Provider fallback chains, multiple provider profiles, and streaming remain out of scope until explicitly requested.
 
 ## Out of Scope Until Explicitly Requested
 

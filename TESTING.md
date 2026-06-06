@@ -36,6 +36,11 @@ Use this checklist before tagging a private test release or publishing the repos
 - [ ] Configure provider base URL.
 - [ ] Configure API key if required by the provider.
 - [ ] Configure model, temperature, and timeout.
+- [ ] Leave maximum response tokens at `0` for provider default behavior.
+- [ ] Leave provider tools enabled for normal Assist state queries and control.
+- [ ] Leave tool choice set to `auto`.
+- [ ] Leave parallel tool calls disabled.
+- [ ] Leave response format set to `default`.
 - [ ] Configure a personality prompt.
 - [ ] Leave optional context, identity, memory, and vision entities blank.
 - [ ] Submit successfully with optional entity fields blank.
@@ -47,6 +52,11 @@ Use this checklist before tagging a private test release or publishing the repos
 - [ ] Confirm the API key field is blank by default.
 - [ ] Submit with the API key field blank and confirm the existing key still works.
 - [ ] Enter a new API key only when intentionally rotating the provider key.
+- [ ] Change maximum response tokens to a small value and confirm responses are capped or shortened by the provider.
+- [ ] Return maximum response tokens to `0`.
+- [ ] Disable provider tools and confirm non-control conversation still works.
+- [ ] Re-enable provider tools and confirm state queries or control work again.
+- [ ] Confirm `tool_choice=auto`, `parallel_tool_calls=false`, and `response_format=default` work with the primary provider.
 - [ ] Set `context_entity` to a helper or sensor with generic home context.
 - [ ] Leave `identity_entity` blank unless a reliable speaker identity source exists.
 - [ ] Set `memory_entity` to a read-only memory summary helper or sensor.
@@ -134,6 +144,8 @@ House Personality waiting 1.0s for Home Assistant state to settle after mutating
 - [ ] Ask a simple request.
 - [ ] Confirm the assistant returns the friendly provider error.
 - [ ] Confirm logs include useful technical detail without API keys.
+- [ ] If a provider rejects tool schemas, disable provider tools and confirm simple non-control conversation works.
+- [ ] If a provider rejects `response_format`, set response format back to `default`.
 
 ## Diagnostics And Privacy
 

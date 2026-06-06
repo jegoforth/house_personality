@@ -23,6 +23,7 @@ Implemented:
 - Optional read-only Voice Assist Recall service adapter.
 - Memory proposal services with explicit approve/reject workflow.
 - Optional read-only vision/event summary entity.
+- Single-profile provider tuning for max tokens, tool behavior, and response format.
 - Diagnostics with secret redaction.
 
 Still not implemented:
@@ -697,25 +698,31 @@ Acceptance Criteria:
 
 ### Phase 7: Advanced Provider Support
 
+Status: Partially implemented as single-profile provider configuration. Multiple provider profiles, provider fallback chains, and streaming are still future work.
+
 Goal:
 
 Improve provider flexibility and resilience.
 
 Deliverables:
 
-- Multiple provider profiles.
-- Per-provider model settings.
-- Optional local/cloud fallback provider.
-- Better timeout handling.
-- Provider test service.
-- Streaming support if feasible.
+- Maximum response token setting. Implemented.
+- Tool enable/disable switch. Implemented.
+- Tool-choice setting. Implemented.
+- Parallel tool-call setting. Implemented.
+- Response-format setting. Implemented.
+- Multiple provider profiles. Future work.
+- Optional local/cloud fallback provider. Future work.
+- Provider test service. Future work.
+- Streaming support if feasible. Future work.
 
 Acceptance Criteria:
 
-- User can configure more than one provider profile.
-- User can test provider connectivity.
+- User can tune provider response length.
+- User can disable tool passing for providers that reject tool schemas.
+- User can choose common OpenAI-compatible tool behavior.
+- User can keep the default provider behavior for broad compatibility.
 - Provider errors are readable and useful.
-- Local and cloud providers can be swapped without changing context/memory configuration.
 
 ### Phase 8: Diagnostics, Testing, and Hardening
 

@@ -21,29 +21,39 @@ from .const import (
     CONF_CONTEXT_ENTITY,
     CONF_DEBUG_LOGGING,
     CONF_IDENTITY_ENTITY,
+    CONF_MAX_TOKENS,
     CONF_MEMORY_ENTITY,
+    CONF_PARALLEL_TOOL_CALLS,
     CONF_PERSONALITY_PROMPT,
     CONF_RECALL_ENABLED,
     CONF_RECALL_INCLUDE_TURNS,
     CONF_RECALL_LIMIT,
     CONF_RECALL_SERVICE_DOMAIN,
     CONF_RECALL_SERVICE_NAME,
+    CONF_RESPONSE_FORMAT,
     CONF_TEMPERATURE,
+    CONF_TOOL_CHOICE,
+    CONF_TOOLS_ENABLED,
     CONF_VISION_ENABLED,
     CONF_VISION_ENTITY,
     DEFAULT_ASSISTANT_NAME,
     DEFAULT_BASE_URL,
     DEFAULT_CONTEXT_MAX_CHARS,
     DEFAULT_IDENTITY_MAX_CHARS,
+    DEFAULT_MAX_TOKENS,
     DEFAULT_MEMORY_MAX_CHARS,
     DEFAULT_MODEL,
+    DEFAULT_PARALLEL_TOOL_CALLS,
     DEFAULT_PERSONALITY_PROMPT,
     DEFAULT_RECALL_LIMIT,
     DEFAULT_RECALL_MAX_CHARS,
     DEFAULT_RECALL_SERVICE_DOMAIN,
     DEFAULT_RECALL_SERVICE_NAME,
+    DEFAULT_RESPONSE_FORMAT,
     DEFAULT_TEMPERATURE,
     DEFAULT_TIMEOUT,
+    DEFAULT_TOOL_CHOICE,
+    DEFAULT_TOOLS_ENABLED,
     DEFAULT_VISION_MAX_CHARS,
     DOMAIN,
     FRIENDLY_PROVIDER_ERROR,
@@ -273,7 +283,13 @@ class HousePersonalityConversationAgent(conversation.ConversationEntity):
             api_key=values.get(CONF_API_KEY) or None,
             model=values.get(CONF_MODEL, DEFAULT_MODEL),
             temperature=float(values.get(CONF_TEMPERATURE, DEFAULT_TEMPERATURE)),
+            max_tokens=int(values.get(CONF_MAX_TOKENS, DEFAULT_MAX_TOKENS)),
             timeout=int(values.get(CONF_TIMEOUT, DEFAULT_TIMEOUT)),
+            tool_choice=values.get(CONF_TOOL_CHOICE, DEFAULT_TOOL_CHOICE),
+            parallel_tool_calls=bool(
+                values.get(CONF_PARALLEL_TOOL_CALLS, DEFAULT_PARALLEL_TOOL_CALLS)
+            ),
+            response_format=values.get(CONF_RESPONSE_FORMAT, DEFAULT_RESPONSE_FORMAT),
             debug_logging=debug_logging,
         )
 
@@ -285,6 +301,9 @@ class HousePersonalityConversationAgent(conversation.ConversationEntity):
                     chat_log=chat_log,
                     provider=provider,
                     prompt_context=prompt_context,
+                    tools_enabled=bool(
+                        values.get(CONF_TOOLS_ENABLED, DEFAULT_TOOLS_ENABLED)
+                    ),
                     debug_logging=debug_logging,
                 )
             else:
@@ -333,6 +352,7 @@ class HousePersonalityConversationAgent(conversation.ConversationEntity):
         chat_log: conversation.ChatLog,
         provider: OpenAICompatibleProvider,
         prompt_context: PromptContext,
+        tools_enabled: bool,
         debug_logging: bool,
     ) -> str:
         """Generate a provider response using the current ChatLog tool API."""
@@ -340,7 +360,10 @@ class HousePersonalityConversationAgent(conversation.ConversationEntity):
             await chat_log.async_provide_llm_data(
                 user_input.as_llm_context(DOMAIN),
                 llm.LLM_API_ASSIST,
-                _system_prompt_from_prompt_context(prompt_context),
+                _system_prompt_from_prompt_context(
+                    prompt_context,
+                    include_tool_instructions=tools_enabled,
+                ),
                 user_input.extra_system_prompt,
             )
         except conversation.ConverseError:
@@ -348,11 +371,13 @@ class HousePersonalityConversationAgent(conversation.ConversationEntity):
         except Exception as err:
             raise ProviderError("Error preparing Home Assistant Assist tools") from err
 
-        tools = _format_openai_tools(chat_log)
+        tools = _format_openai_tools(chat_log) if tools_enabled else []
         if debug_logging:
             _LOGGER.debug(
-                "House Personality Assist LLM API status: enabled=%s tools=%s tool_names=%s",
+                "House Personality Assist LLM API status: enabled=%s "
+                "provider_tools_enabled=%s tools=%s tool_names=%s",
                 bool(chat_log.llm_api),
+                tools_enabled,
                 len(tools),
                 _tool_names(tools),
             )
@@ -477,14 +502,19 @@ def _add_assistant_response_to_chat_log(
     )
 
 
-def _system_prompt_from_prompt_context(context: PromptContext) -> str:
+def _system_prompt_from_prompt_context(
+    context: PromptContext,
+    *,
+    include_tool_instructions: bool,
+) -> str:
     """Build the system prompt without duplicating the user message."""
     system_parts = [
         message["content"]
         for message in build_chat_messages(context)
         if message["role"] == "system"
     ]
-    system_parts.append(_HOME_ASSISTANT_TOOL_INSTRUCTIONS)
+    if include_tool_instructions:
+        system_parts.append(_HOME_ASSISTANT_TOOL_INSTRUCTIONS)
     return "\n\n".join(system_parts)
 
 

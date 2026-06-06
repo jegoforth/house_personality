@@ -13,6 +13,8 @@ from homeassistant.helpers.selector import (
     EntitySelector,
     NumberSelector,
     NumberSelectorConfig,
+    SelectSelector,
+    SelectSelectorConfig,
     TextSelector,
     TextSelectorConfig,
     TextSelectorType,
@@ -24,27 +26,40 @@ from .const import (
     CONF_CONTEXT_ENTITY,
     CONF_DEBUG_LOGGING,
     CONF_IDENTITY_ENTITY,
+    CONF_MAX_TOKENS,
     CONF_MEMORY_ENTITY,
+    CONF_PARALLEL_TOOL_CALLS,
     CONF_PERSONALITY_PROMPT,
     CONF_RECALL_ENABLED,
     CONF_RECALL_INCLUDE_TURNS,
     CONF_RECALL_LIMIT,
     CONF_RECALL_SERVICE_DOMAIN,
     CONF_RECALL_SERVICE_NAME,
+    CONF_RESPONSE_FORMAT,
     CONF_TEMPERATURE,
+    CONF_TOOL_CHOICE,
+    CONF_TOOLS_ENABLED,
     CONF_VISION_ENABLED,
     CONF_VISION_ENTITY,
     DEFAULT_ASSISTANT_NAME,
     DEFAULT_BASE_URL,
+    DEFAULT_MAX_TOKENS,
     DEFAULT_MODEL,
+    DEFAULT_PARALLEL_TOOL_CALLS,
     DEFAULT_PERSONALITY_PROMPT,
     DEFAULT_RECALL_LIMIT,
     DEFAULT_RECALL_SERVICE_DOMAIN,
     DEFAULT_RECALL_SERVICE_NAME,
+    DEFAULT_RESPONSE_FORMAT,
     DEFAULT_TEMPERATURE,
     DEFAULT_TIMEOUT,
+    DEFAULT_TOOL_CHOICE,
+    DEFAULT_TOOLS_ENABLED,
     DOMAIN,
 )
+
+_TOOL_CHOICE_OPTIONS = ("auto", "required", "none")
+_RESPONSE_FORMAT_OPTIONS = ("default", "text", "json_object")
 
 
 class HousePersonalityConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -191,6 +206,16 @@ def _config_schema(
                 )
             ),
             vol.Required(
+                CONF_MAX_TOKENS,
+                default=defaults.get(CONF_MAX_TOKENS, DEFAULT_MAX_TOKENS),
+            ): NumberSelector(
+                NumberSelectorConfig(
+                    min=0,
+                    max=32000,
+                    step=1,
+                )
+            ),
+            vol.Required(
                 CONF_TIMEOUT,
                 default=defaults.get(CONF_TIMEOUT, DEFAULT_TIMEOUT),
             ): NumberSelector(
@@ -207,6 +232,33 @@ def _config_schema(
                     DEFAULT_PERSONALITY_PROMPT,
                 ),
             ): TextSelector(TextSelectorConfig(multiline=True)),
+            vol.Required(
+                CONF_TOOLS_ENABLED,
+                default=defaults.get(CONF_TOOLS_ENABLED, DEFAULT_TOOLS_ENABLED),
+            ): BooleanSelector(),
+            vol.Required(
+                CONF_TOOL_CHOICE,
+                default=defaults.get(CONF_TOOL_CHOICE, DEFAULT_TOOL_CHOICE),
+            ): SelectSelector(
+                SelectSelectorConfig(
+                    options=list(_TOOL_CHOICE_OPTIONS),
+                )
+            ),
+            vol.Required(
+                CONF_PARALLEL_TOOL_CALLS,
+                default=defaults.get(
+                    CONF_PARALLEL_TOOL_CALLS,
+                    DEFAULT_PARALLEL_TOOL_CALLS,
+                ),
+            ): BooleanSelector(),
+            vol.Required(
+                CONF_RESPONSE_FORMAT,
+                default=defaults.get(CONF_RESPONSE_FORMAT, DEFAULT_RESPONSE_FORMAT),
+            ): SelectSelector(
+                SelectSelectorConfig(
+                    options=list(_RESPONSE_FORMAT_OPTIONS),
+                )
+            ),
             _optional_entity_key(defaults, CONF_CONTEXT_ENTITY): EntitySelector(),
             _optional_entity_key(defaults, CONF_IDENTITY_ENTITY): EntitySelector(),
             _optional_entity_key(defaults, CONF_MEMORY_ENTITY): EntitySelector(),
@@ -263,8 +315,13 @@ def _normalize_user_input(user_input: dict[str, Any]) -> dict[str, Any]:
         CONF_API_KEY: user_input.get(CONF_API_KEY, "").strip(),
         CONF_MODEL: user_input[CONF_MODEL].strip(),
         CONF_TEMPERATURE: float(user_input[CONF_TEMPERATURE]),
+        CONF_MAX_TOKENS: int(user_input[CONF_MAX_TOKENS]),
         CONF_TIMEOUT: int(user_input[CONF_TIMEOUT]),
         CONF_PERSONALITY_PROMPT: user_input[CONF_PERSONALITY_PROMPT].strip(),
+        CONF_TOOLS_ENABLED: bool(user_input[CONF_TOOLS_ENABLED]),
+        CONF_TOOL_CHOICE: user_input[CONF_TOOL_CHOICE],
+        CONF_PARALLEL_TOOL_CALLS: bool(user_input[CONF_PARALLEL_TOOL_CALLS]),
+        CONF_RESPONSE_FORMAT: user_input[CONF_RESPONSE_FORMAT],
         CONF_CONTEXT_ENTITY: _clean_optional_text(user_input.get(CONF_CONTEXT_ENTITY)),
         CONF_IDENTITY_ENTITY: _clean_optional_text(user_input.get(CONF_IDENTITY_ENTITY)),
         CONF_MEMORY_ENTITY: _clean_optional_text(user_input.get(CONF_MEMORY_ENTITY)),
@@ -313,6 +370,11 @@ def _validate_user_input(user_input: dict[str, Any]) -> dict[str, str]:
     for field in required_text_fields:
         if not str(user_input.get(field, "")).strip():
             errors[field] = "required"
+
+    if user_input.get(CONF_TOOL_CHOICE) not in _TOOL_CHOICE_OPTIONS:
+        errors[CONF_TOOL_CHOICE] = "invalid_option"
+    if user_input.get(CONF_RESPONSE_FORMAT) not in _RESPONSE_FORMAT_OPTIONS:
+        errors[CONF_RESPONSE_FORMAT] = "invalid_option"
 
     return errors
 

@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.2.0 - Provider Configuration
+
+- Added single-profile provider tuning for maximum response tokens.
+- Added a provider tool-use switch for compatibility with providers that reject tool schemas.
+- Added configurable OpenAI-compatible tool choice.
+- Added configurable parallel tool-call behavior.
+- Added configurable OpenAI-compatible response format.
+- Documented provider compatibility guidance.
+
 ## v0.1.2 - Private Test Release
 
 - Added HACS-compatible release metadata and confirmed GitHub release-based version display.

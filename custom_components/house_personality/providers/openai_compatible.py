@@ -31,7 +31,11 @@ class OpenAICompatibleProvider:
         api_key: str | None,
         model: str,
         temperature: float,
+        max_tokens: int,
         timeout: int,
+        tool_choice: str,
+        parallel_tool_calls: bool,
+        response_format: str,
         debug_logging: bool,
     ) -> None:
         """Initialize the provider."""
@@ -40,7 +44,11 @@ class OpenAICompatibleProvider:
         self._api_key = api_key
         self._model = model
         self._temperature = temperature
+        self._max_tokens = max_tokens
         self._timeout = timeout
+        self._tool_choice = tool_choice
+        self._parallel_tool_calls = parallel_tool_calls
+        self._response_format = response_format
         self._debug_logging = debug_logging
 
     async def async_generate_response(
@@ -72,19 +80,28 @@ class OpenAICompatibleProvider:
             "messages": messages,
             "temperature": self._temperature,
         }
+        if self._max_tokens > 0:
+            payload["max_tokens"] = self._max_tokens
+        if self._response_format != "default":
+            payload["response_format"] = {"type": self._response_format}
         if tools:
             payload["tools"] = tools
-            payload["tool_choice"] = "auto"
-            payload["parallel_tool_calls"] = False
+            payload["tool_choice"] = self._tool_choice
+            payload["parallel_tool_calls"] = self._parallel_tool_calls
 
         if self._debug_logging:
             _LOGGER.debug(
                 "Sending chat completion request to provider: "
-                "model=%s url=%s messages=%s tools=%s",
+                "model=%s url=%s messages=%s tools=%s max_tokens=%s "
+                "tool_choice=%s parallel_tool_calls=%s response_format=%s",
                 self._model,
                 url,
                 len(messages),
                 len(tools or []),
+                self._max_tokens or "provider_default",
+                self._tool_choice if tools else "not_sent",
+                self._parallel_tool_calls if tools else "not_sent",
+                self._response_format,
             )
 
         try:

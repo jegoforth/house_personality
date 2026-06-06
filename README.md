@@ -20,8 +20,13 @@ This project is intended to be reusable and community-friendly. It does not incl
   - API key
   - model
   - temperature
+  - maximum response tokens
   - timeout
   - personality prompt
+  - Home Assistant tool use
+  - OpenAI-compatible tool choice
+  - parallel tool-call behavior
+  - response format
   - optional context entity
   - optional identity entity
   - optional memory entity
@@ -75,8 +80,13 @@ The UI config flow asks for:
 - **API key**: Secret token sent as a bearer token. Some local endpoints may accept any value or no value.
 - **Model**: Provider model name.
 - **Temperature**: Sampling temperature.
+- **Maximum response tokens**: Optional cap for provider response length. Use `0` for the provider default.
 - **Timeout**: Provider request timeout in seconds.
 - **Personality prompt**: System prompt that defines assistant behavior.
+- **Use Home Assistant tools**: Pass Assist tools to the provider for exposed-entity state and control.
+- **Tool choice**: OpenAI-compatible tool-choice mode sent when tools are enabled. Supported values are `auto`, `required`, and `none`.
+- **Parallel tool calls**: Allow compatible providers to request multiple tool calls in a single response. Disabled by default for more predictable Home Assistant control.
+- **Response format**: Optional OpenAI-compatible response format. Use `default` unless a provider specifically needs `text` or `json_object`.
 - **Context entity**: Optional entity whose state and attributes are included as home context.
 - **Identity entity**: Optional entity whose state is included as the likely speaker identity.
 - **Memory entity**: Optional entity whose state and attributes are included as read-only memory context.
@@ -95,6 +105,11 @@ Home Assistant may show raw option keys for some selector-based fields. The fiel
 
 | Field key | Purpose |
 | --- | --- |
+| `max_tokens` | Optional response-token cap. `0` uses the provider default. |
+| `tools_enabled` | Enables passing Home Assistant Assist tools to the provider. |
+| `tool_choice` | Tool choice sent when tools are enabled: `auto`, `required`, or `none`. |
+| `parallel_tool_calls` | Allows compatible providers to request parallel tool calls. |
+| `response_format` | Optional provider response format: `default`, `text`, or `json_object`. |
 | `context_entity` | Optional helper or sensor with home context. |
 | `identity_entity` | Optional helper or sensor whose state is the current speaker, such as `Guest` or `Unknown`. |
 | `memory_entity` | Optional helper or sensor with read-only durable memory summary. |
@@ -189,6 +204,15 @@ Recent event summary: motion was detected near the driveway at 8:42 PM.
 House Personality expects an OpenAI-compatible chat completions API.
 
 For home control through Assist, the provider/model must support OpenAI-compatible tool calls. House Personality passes Home Assistant's built-in Assist tools to the provider and executes returned tool calls through Home Assistant's conversation chat log.
+
+Provider compatibility options:
+
+- Keep **Use Home Assistant tools** enabled for state queries and device control.
+- Disable **Use Home Assistant tools** if a provider rejects tool schemas or does not support tool calling.
+- Keep **Tool choice** set to `auto` for normal use. Use `none` to send tools but ask the provider not to call them. Use `required` only when testing a provider's tool-call behavior.
+- Keep **Parallel tool calls** disabled unless the provider and target Home Assistant actions have been tested with parallel tool execution.
+- Keep **Response format** set to `default` for broad compatibility. `json_object` is useful only for models and prompts that are explicitly expected to return JSON.
+- Set **Maximum response tokens** to `0` to let the provider choose its default, or a positive number to cap response length.
 
 The configured base URL is normalized as follows:
 
