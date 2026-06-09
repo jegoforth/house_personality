@@ -6,9 +6,9 @@ This file captures current project decisions for `house_personality` so developm
 
 Build a reusable, HACS-friendly Home Assistant custom integration that provides a configurable personality, context, memory, event-summary, and Home Assistant Assist conversation layer.
 
-The implementation has moved beyond the initial Phase 0/1 MVP. Phases 0 through 6 are implemented as small optional adapters, and the conversation agent now advertises Home Assistant control support and passes Home Assistant's built-in Assist LLM tools to compatible OpenAI-style providers.
+The implementation has moved beyond the initial Phase 0/1 MVP. Phases 0 through 6 are implemented as small optional adapters, the conversation agent advertises Home Assistant control support, Phase 7 provider tuning is partially implemented, Phase 8 validation hardening is partially implemented, and Phase 9 public-release documentation is in progress.
 
-The next work should focus on provider compatibility testing, diagnostics and test hardening, and release readiness.
+The next work should focus on public-release review, remaining validation gaps, and any release packaging needed before broader public feedback.
 
 ## Confirmed Decisions
 

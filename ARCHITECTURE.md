@@ -2,7 +2,7 @@
 
 ## Current Implementation Status
 
-The integration currently implements Phases 0 through 6 plus current Home Assistant conversation entity compatibility for Assist tool calls.
+The integration currently implements Phases 0 through 6, current Home Assistant conversation entity compatibility for Assist tool calls, partial Phase 7 provider tuning, partial Phase 8 validation hardening, and Phase 9 public-release documentation readiness.
 
 Implemented:
 
@@ -62,16 +62,16 @@ The integration should support this general flow:
 
 ```text
 Home Assistant Assist
-  → House Personality conversation agent
-      → Load configured personality
-      → Load optional household/context data
-      → Resolve optional speaker identity
-      → Retrieve optional conversation memory
-      → Retrieve optional vision/event context
-      → Build final prompt
-      → Call configured LLM provider
-      → Return response to Assist
-      → Optionally store or propose memory updates
+  -> House Personality conversation agent
+      -> Load configured personality
+      -> Load optional household/context data
+      -> Resolve optional speaker identity
+      -> Retrieve optional conversation memory
+      -> Retrieve optional vision/event context
+      -> Build final prompt
+      -> Call configured LLM provider
+      -> Return response to Assist
+      -> Optionally store memory proposals
 ```
 
 The integration should be modular, provider-agnostic, and HACS-friendly from the start.
@@ -86,8 +86,8 @@ The public project should provide:
 - Support for Home Assistant's built-in Assist LLM tools when the configured provider supports OpenAI-compatible tool calls.
 - Optional context injection from Home Assistant entities.
 - Optional speaker identity context.
-- Optional conversation recall integration.
-- Optional future vision/event context.
+- Optional read-only conversation recall integration.
+- Optional read-only vision/event summary context.
 - Safe fallbacks when optional components are missing.
 - Clear debug logging and diagnostics.
 - HACS-compatible repository structure.
@@ -98,14 +98,14 @@ The public project should provide:
 The initial project should not:
 
 - Hardcode any specific household or assistant persona.
-- Require the maintainer’s speaker recognition integration.
-- Require the maintainer’s Voice Assist Recall project.
+- Require the maintainer's speaker recognition integration.
+- Require the maintainer's Voice Assist Recall project.
 - Require LLM Vision.
 - Directly modify `house_memory.json` in the first release.
 - Attempt to replace all Home Assistant LLM integrations.
 - Implement custom Home Assistant service-call parsing when the built-in Assist LLM tools can be used.
 - Depend on one specific LLM provider.
-- Become a monolithic “everything AI” integration.
+- Become a monolithic "everything AI" integration.
 
 The project should orchestrate optional capabilities, not duplicate every external integration.
 
@@ -126,9 +126,10 @@ house_personality/
       const.py
       config_flow.py
       conversation.py
+      diagnostics.py
+      services.py
       services.yaml
       strings.json
-      diagnostics.py
       translations/
         en.json
       providers/
@@ -147,14 +148,12 @@ house_personality/
         __init__.py
         base.py
         entity_memory.py
+        proposals.py
         recall_adapter.py
       vision/
         __init__.py
         base.py
         entity_vision.py
-      storage/
-        __init__.py
-        store.py
 ```
 
 There must be only one Home Assistant integration under `custom_components/`.
@@ -254,19 +253,19 @@ The integration should not directly depend on any specific speaker recognition i
 
 Memory is prior conversation or preference context that may be relevant to the current request.
 
-The first implementation should support memory as optional context from an entity or service.
+The current implementation supports memory as optional read-only context from an entity and optional read-only recall context from a configured service.
 
-Native integration with Voice Assist Recall should be added later through an adapter.
+Voice Assist Recall-style integration is service-based and optional. House Personality does not require any specific recall integration to be installed.
 
 Memory retrieval should be modular and replaceable.
 
 ### 5. Vision/Event Context
 
-Vision context may come from LLM Vision, Frigate, camera event summaries, or other entity-based sources.
+Vision/event context may come from LLM Vision, Frigate, camera event summaries, or other entity-based sources.
 
-This should not be part of the MVP.
+The current implementation supports optional read-only text summary context from a configured entity.
 
-When added, it should be optional and adapter-based.
+Native LLM Vision integration remains future work.
 
 House Personality should consume vision summaries; it should not perform camera analysis itself unless explicitly added in a future phase.
 
@@ -394,23 +393,37 @@ Options that users may need to change after setup should be available through an
 
 ## Configuration Model
 
-Initial config flow fields:
+Current config flow and options fields:
 
 ```text
 Assistant display name
-Provider type
 Provider base URL
 API key
 Model
 Temperature
+Maximum response tokens
 Timeout
 Personality prompt
+Use Home Assistant tools
+Tool choice
+Parallel tool calls
+Response format
 Context entity
 Identity entity
+Memory entity
+Use Voice Assist Recall
+Recall service domain
+Recall service name
+Recall result limit
+Include supporting recall turns
+Use vision/event summary context
+Vision/event summary entity
 Debug logging
 ```
 
-Recommended default provider type:
+Provider behavior is currently single-profile and OpenAI-compatible. There is no provider type selector yet.
+
+Recommended provider type:
 
 ```text
 OpenAI-compatible
@@ -422,6 +435,7 @@ Recommended initial optional fields:
 context_entity
 identity_entity
 memory_entity
+vision_entity
 ```
 
 Fields should be optional unless required for the configured mode.
@@ -612,8 +626,8 @@ Integrate with the separate Voice Assist Recall project without making it a hard
 
 Deliverables:
 
-- Optional adapter for Voice Assist Recall.
-- Detection of whether Voice Assist Recall is installed.
+- Optional service adapter for Voice Assist Recall-compatible recall providers.
+- Configurable recall service domain and service name.
 - Retrieval of relevant conversation snippets.
 - Speaker-aware memory lookup when identity is available.
 - Graceful fallback when unavailable.
@@ -621,7 +635,7 @@ Deliverables:
 Acceptance Criteria:
 
 - House Personality works without Voice Assist Recall.
-- If Voice Assist Recall is installed and configured, relevant recall snippets are included.
+- If a compatible recall service is installed and configured, relevant recall snippets are included.
 - Speaker identity can be passed to recall lookup.
 - Recall errors do not break the conversation.
 
@@ -637,8 +651,9 @@ Deliverables:
 
 - Memory proposal model.
 - Service for creating proposed memory updates.
-- Event fired when memory update is proposed.
-- Optional persistent storage for pending proposals.
+- Service for listing memory update proposals.
+- Events fired when memory updates are proposed or reviewed.
+- Persistent local storage for proposals.
 - Approval/rejection services.
 
 Acceptance Criteria:
@@ -646,7 +661,7 @@ Acceptance Criteria:
 - Assistant can identify possible memory updates.
 - Updates are stored as proposals, not directly written to permanent memory.
 - User can approve or reject a proposal.
-- Approved proposals can be emitted to an external memory system or written by a configured adapter.
+- Approved proposals are marked approved and can be consumed by external automation.
 - No automatic modification of household memory happens without explicit configuration.
 
 ### Phase 6: Vision/Event Context Adapter
@@ -792,21 +807,25 @@ Acceptance Criteria:
 - The project does not expose private maintainer configuration.
 - The repository is ready for public feedback.
 
-## Suggested Services
+## Services
+
+Implemented services:
+
+```yaml
+house_personality.create_memory_proposal
+house_personality.list_memory_proposals
+house_personality.approve_memory_proposal
+house_personality.reject_memory_proposal
+```
 
 Future services may include:
 
 ```yaml
-house_personality.reload_context
 house_personality.test_provider
 house_personality.render_prompt_preview
-house_personality.propose_memory_update
-house_personality.approve_memory_update
-house_personality.reject_memory_update
+house_personality.reload_context
 house_personality.clear_session
 ```
-
-The MVP does not need all services.
 
 ## Logging
 
