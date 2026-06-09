@@ -3,6 +3,8 @@
 ## Unreleased
 
 - Added lightweight unit tests for prompt assembly, provider payload construction, diagnostics redaction, and no-tools conversation policy.
+- Added GitHub Actions validation for JSON files, unit tests, Python compilation, and private-data scanning.
+- Added GitHub issue and pull request templates.
 
 ## v0.2.2 - Tool Choice None Behavior
 

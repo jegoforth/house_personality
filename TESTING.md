@@ -11,6 +11,7 @@ Use this checklist before tagging a private test release or publishing the repos
 - [ ] Run `uv run python -m unittest discover -s tests`.
 - [ ] Run `git diff --check`.
 - [ ] Search the repository for private names, entity IDs, prompts, secrets, or household-specific examples.
+- [ ] Confirm the GitHub Actions validation workflow passes after pushing.
 - [ ] Commit the release-readiness changes.
 - [ ] Push `main`.
 - [ ] Create and push a matching Git tag, such as `v0.1.2`.

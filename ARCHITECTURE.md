@@ -25,6 +25,8 @@ Implemented:
 - Optional read-only vision/event summary entity.
 - Single-profile provider tuning for max tokens, tool behavior, and response format.
 - Lightweight unit tests for prompt assembly, provider payload construction, diagnostics redaction, and no-tools policy.
+- GitHub Actions validation workflow.
+- GitHub issue and pull request templates.
 - Diagnostics with secret redaction.
 
 Still not implemented:
@@ -743,7 +745,9 @@ Deliverables:
 - Unit tests for no-tools conversation policy. Implemented.
 - Linting.
 - Hassfest validation if applicable.
-- GitHub issue templates.
+- GitHub issue templates. Implemented.
+- GitHub pull request template. Implemented.
+- GitHub validation workflow. Implemented for JSON validation, unit tests, Python compilation, and private-data scanning.
 - GitHub release workflow.
 - Clear troubleshooting docs.
 

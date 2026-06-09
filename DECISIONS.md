@@ -140,6 +140,8 @@ Partially implemented.
 - Provider tests cover OpenAI-compatible payload construction for provider options.
 - Diagnostics tests cover secret and configured entity redaction.
 - Conversation policy tests cover tools-disabled and `tool_choice=none` behavior.
+- GitHub Actions validates JSON files, lightweight unit tests, Python compilation, and private-data scanning.
+- GitHub issue and pull request templates are present for eventual public feedback.
 
 ## Out of Scope Until Explicitly Requested
 

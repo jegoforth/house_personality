@@ -1,0 +1,73 @@
+name: Validate
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  validate:
+    name: Validate repository
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Validate JSON files
+        run: |
+          python -m json.tool hacs.json
+          python -m json.tool custom_components/house_personality/manifest.json
+          python -m json.tool custom_components/house_personality/strings.json
+          python -m json.tool custom_components/house_personality/translations/en.json
+
+      - name: Run lightweight unit tests
+        run: python -m unittest discover -s tests
+
+      - name: Compile Python files
+        run: python -m compileall custom_components/house_personality tests
+
+      - name: Check for private test data
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import sys
+
+          patterns = (
+              "input_text.house",
+              "sensor.house",
+              "house_context",
+              "House Memory Summary",
+              "front porch",
+              "api_key:",
+              "sk-",
+          )
+          roots = [
+              Path("custom_components"),
+              Path("tests"),
+              Path("README.md"),
+              Path("TESTING.md"),
+              Path("ARCHITECTURE.md"),
+              Path("DECISIONS.md"),
+              Path("CHANGELOG.md"),
+          ]
+          hits: list[str] = []
+          for root in roots:
+              paths = [root] if root.is_file() else root.rglob("*")
+              for path in paths:
+                  if not path.is_file() or path.suffix == ".pyc":
+                      continue
+                  text = path.read_text(encoding="utf-8", errors="ignore")
+                  for pattern in patterns:
+                      if pattern in text:
+                          hits.append(f"{path}: contains {pattern!r}")
+          if hits:
+              print("\n".join(hits))
+              sys.exit(1)
+          PY

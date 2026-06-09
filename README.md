@@ -255,6 +255,8 @@ Run lightweight unit tests from the repository root:
 uv run python -m unittest discover -s tests
 ```
 
+The repository also includes a GitHub Actions validation workflow for JSON validation, lightweight unit tests, Python compilation, and private-data scanning.
+
 See [CHANGELOG.md](CHANGELOG.md) for private test release notes.
 
 ## Troubleshooting
