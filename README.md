@@ -126,6 +126,8 @@ Home Assistant may show raw option keys for some selector-based fields. The fiel
 
 House Personality does not create private household context or memory by default. Users choose which Home Assistant helpers, template sensors, or external integrations to connect.
 
+See [CONTEXT_CONTRACTS.md](CONTEXT_CONTRACTS.md) for preferred generic entity and service contracts for optional identity, location, room status, house context, memory, recall, and vision/event summary sources.
+
 ### Personality Prompt
 
 Use the personality prompt for assistant behavior and tone. This can be generic or household-specific in your private Home Assistant instance.
@@ -239,6 +241,7 @@ Configured context, identity, memory, and vision/event entity IDs are also redac
 Memory proposal services store pending proposal text locally in Home Assistant storage for explicit review. Approving a proposal only marks it approved; it does not write to any external memory system or file.
 
 See [SECURITY.md](SECURITY.md) for security reporting and sensitive-data guidance.
+See [CONTEXT_CONTRACTS.md](CONTEXT_CONTRACTS.md) for privacy guidance specific to optional location and camera-derived context.
 
 ## Known Limitations
 
