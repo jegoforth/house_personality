@@ -27,6 +27,7 @@ Implemented:
 - Lightweight unit tests for prompt assembly, provider payload construction, diagnostics redaction, and no-tools policy.
 - GitHub Actions validation workflow.
 - GitHub issue and pull request templates.
+- Public release support docs, examples, security notes, release checklist, and community post draft.
 - Diagnostics with secret redaction.
 
 Still not implemented:
@@ -762,6 +763,8 @@ Acceptance Criteria:
 
 ### Phase 9: Public Release Readiness
 
+Status: In progress.
+
 Goal:
 
 Prepare for initial public release.
@@ -769,14 +772,16 @@ Prepare for initial public release.
 Deliverables:
 
 - Tagged release.
-- Complete README.
+- Complete README. In progress.
 - Screenshots if useful.
-- Example configurations.
-- Privacy documentation.
-- Roadmap.
-- Known limitations.
-- HACS custom repository install instructions.
-- Community forum post draft.
+- Example configurations. Implemented.
+- Privacy documentation. Implemented.
+- Security reporting guidance. Implemented.
+- Roadmap. Implemented.
+- Known limitations. Implemented.
+- HACS custom repository install instructions. Implemented.
+- Release checklist. Implemented.
+- Community forum post draft. Implemented.
 
 Acceptance Criteria:
 

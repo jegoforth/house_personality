@@ -143,6 +143,16 @@ Partially implemented.
 - GitHub Actions validates JSON files, lightweight unit tests, Python compilation, and private-data scanning.
 - GitHub issue and pull request templates are present for eventual public feedback.
 
+### Phase 9: Public Release Readiness
+
+In progress.
+
+- Public-facing examples are documented separately from private user configuration.
+- Security and sensitive-data reporting guidance is documented.
+- Release checklist is documented.
+- Known limitations are documented in the README.
+- Community post draft is available for eventual public feedback.
+
 ## Out of Scope Until Explicitly Requested
 
 Do not implement these next unless requested:
@@ -199,6 +209,7 @@ Future work may add:
 - Better automated tests around provider tool-call handling.
 - Additional diagnostics and test hardening.
 - HACS/release validation.
+- Public release review.
 - LLM Vision native adapter.
 - Multiple provider profiles.
 - Provider fallback behavior.

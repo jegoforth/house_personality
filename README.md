@@ -55,7 +55,7 @@ The first version intentionally does not implement:
 
 ## HACS Installation
 
-House Personality can be installed as a custom HACS integration while the repository is private or in public testing.
+House Personality can be installed as a custom HACS integration.
 
 1. Add this repository as a custom HACS repository.
 2. Select the `Integration` category.
@@ -225,6 +225,8 @@ Examples:
 - `http://localhost:1234/v1`
 - `http://homeassistant.local:8000/v1`
 
+See [EXAMPLES.md](EXAMPLES.md) for generic configuration examples.
+
 ## Privacy Notes
 
 House Personality sends the configured personality prompt, current Assist user message, and any configured context, identity, memory entity, relevant Voice Assist Recall data, or vision/event summary entity data to the configured provider. Context, memory, recall, and event summary content may contain personal home information. Identity entity state may identify a person if you configure it that way.
@@ -235,6 +237,21 @@ The integration does not store conversation memory and does not write to any mem
 Configured context, identity, memory, and vision/event entity IDs are also redacted from diagnostics.
 
 Memory proposal services store pending proposal text locally in Home Assistant storage for explicit review. Approving a proposal only marks it approved; it does not write to any external memory system or file.
+
+See [SECURITY.md](SECURITY.md) for security reporting and sensitive-data guidance.
+
+## Known Limitations
+
+- This is a custom integration, not a core Home Assistant integration.
+- Provider support depends on OpenAI-compatible chat completions behavior.
+- Home control requires a provider/model that supports compatible tool calls.
+- Parallel tool calls can cause stale verification with some provider/device combinations and are disabled by default.
+- Selector-based option fields may show raw field keys in Home Assistant.
+- Voice Assist Recall integration is optional and service-based.
+- Vision/event context is read from text summaries only.
+- Memory proposal services do not write to external memory systems.
+- Approved memory proposals are only marked approved inside House Personality.
+- No provider fallback chains, multiple provider profiles, or streaming support are implemented.
 
 ## Services
 
@@ -258,6 +275,8 @@ uv run python -m unittest discover -s tests
 The repository also includes a GitHub Actions validation workflow for JSON validation, lightweight unit tests, Python compilation, and private-data scanning.
 
 See [CHANGELOG.md](CHANGELOG.md) for private test release notes.
+See [RELEASE.md](RELEASE.md) for the release checklist.
+See [COMMUNITY_POST.md](COMMUNITY_POST.md) for a draft public announcement.
 
 ## Troubleshooting
 
@@ -280,4 +299,4 @@ See [CHANGELOG.md](CHANGELOG.md) for private test release notes.
 - Phase 6: optional vision/event summary context. Implemented as read-only entity summary context.
 - Phase 7: advanced provider configuration.
 - Phase 8: tests, diagnostics hardening, and release validation.
-- Phase 9: public release readiness.
+- Phase 9: public release readiness. In progress.
