@@ -8,7 +8,7 @@ Build a reusable, HACS-friendly Home Assistant custom integration that provides 
 
 The implementation has moved beyond the initial Phase 0/1 MVP. Phases 0 through 6 are implemented as small optional adapters, the conversation agent advertises Home Assistant control support, Phase 7 provider tuning is partially implemented, Phase 8 validation hardening is partially implemented, and Phase 9 public-release documentation is in progress.
 
-The next work should focus on public-release review, remaining validation gaps, and any release packaging needed before broader public feedback.
+The next work should focus on context-source compatibility, public-release review, remaining validation gaps, and any release packaging needed before broader public feedback.
 
 ## Confirmed Decisions
 
@@ -30,6 +30,9 @@ The next work should focus on public-release review, remaining validation gaps, 
 - No private household data should be hardcoded.
 - Private assistant configurations are test cases, not the product identity.
 - The maintainer's household setup should act as an advanced test case, not the default behavior.
+- `CONTEXT_CONTRACTS.md` is the preferred public compatibility target for optional context sources.
+- Companion integrations should expose generic Home Assistant entities or services rather than requiring House Personality to know their internals.
+- House Personality should consume context; it should not calculate speaker identity, person location, room status, camera analysis, or durable memory itself.
 
 ## Implemented Scope
 
@@ -148,16 +151,41 @@ Partially implemented.
 In progress.
 
 - Public-facing examples are documented separately from private user configuration.
+- Generic context contracts are documented for optional companion integrations.
 - Security and sensitive-data reporting guidance is documented.
 - Release checklist is documented.
 - Known limitations are documented in the README.
 - Community post draft is available for eventual public feedback.
+
+### Phase 10: Person and Room Location Context
+
+Planned.
+
+- Location context should be optional.
+- House Personality should consume generic entity/service context for person, room, area, or current-speaker location.
+- House Personality should not require Bermuda, ESPresense, room-assistant, `person`, `device_tracker`, or any specific location integration.
+- Location context should include staleness and confidence guidance.
+- Location context should be treated as sensitive private context.
+- House Personality should not perform Bluetooth scanning, trilateration, or location calculation itself.
+
+### Phase 11: Public-Space Room Status Context
+
+Planned.
+
+- Room status context should be optional.
+- House Personality should consume generic public-space room status summaries from entities or services.
+- House Personality should not require LLM Vision, Frigate, cameras, or any specific vision integration.
+- Room status context should include staleness, confidence, and privacy guidance.
+- House Personality should not analyze images, video, faces, objects, or camera streams itself.
+- Documentation should discourage private-space camera-derived context.
 
 ## Out of Scope Until Explicitly Requested
 
 Do not implement these next unless requested:
 
 - Speaker recognition.
+- Person location calculation.
+- Room status calculation.
 - Memory writing.
 - Direct writes to `house_memory.json`.
 - LLM Vision native integration.
@@ -173,6 +201,7 @@ Do not implement these next unless requested:
 - Keep provider logic separate from conversation logic.
 - Keep prompt assembly separate from provider calls.
 - Keep context, identity, memory, and vision/event context as adapters.
+- Keep location and room-status context as generic optional adapters.
 - Optional features must fail gracefully.
 - Avoid hard dependencies on optional integrations.
 - Use Home Assistant async patterns.
@@ -195,6 +224,7 @@ The current working version should prove:
 - A simple Assist text request is sent to the provider.
 - The provider response is returned to Assist.
 - Optional context, identity, memory, recall, and event-summary sources can be configured.
+- Optional context source contracts are documented for companion integrations.
 - Missing optional sources do not break conversation.
 - If the configured provider supports OpenAI-compatible tool calls, exposed Home Assistant entities can be queried and controlled through Assist.
 - Provider failures return a friendly error instead of crashing.
@@ -210,6 +240,8 @@ Future work may add:
 - Additional diagnostics and test hardening.
 - HACS/release validation.
 - Public release review.
+- Generic entity/service adapters for person and room location context.
+- Generic entity/service adapters for public-space room status context.
 - LLM Vision native adapter.
 - Multiple provider profiles.
 - Provider fallback behavior.

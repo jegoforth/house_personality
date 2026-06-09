@@ -28,6 +28,7 @@ Implemented:
 - GitHub Actions validation workflow.
 - GitHub issue and pull request templates.
 - Public release support docs, examples, security notes, release checklist, and community post draft.
+- Generic context contracts for optional identity, location, room status, house context, memory, recall, and vision/event summary sources.
 - Diagnostics with secret redaction.
 
 Still not implemented:
@@ -79,6 +80,8 @@ Home Assistant Assist
 ```
 
 The integration should be modular, provider-agnostic, and HACS-friendly from the start.
+
+`CONTEXT_CONTRACTS.md` defines the preferred generic entity and service shapes for optional companion integrations. That document is the public compatibility target for future integrations that want to provide context to House Personality without becoming hard dependencies.
 
 ## Public Project Goals
 
@@ -277,7 +280,7 @@ This is a high-value context source for natural requests such as:
 Turn on the lights in here.
 Make it warmer where I am.
 Is anyone still downstairs?
-Where is Shelley?
+Where is Person A?
 Did I leave my phone in the office?
 ```
 
@@ -299,11 +302,11 @@ The initial person/room location design should be entity-based and adapter-based
 Example location entities:
 
 ```text
-sensor.eric_current_area
-sensor.shelley_current_room
+sensor.person_a_current_area
+sensor.person_b_current_room
 sensor.last_detected_person_area
-device_tracker.eric_phone
-person.eric
+device_tracker.person_a_phone
+person.person_a
 input_text.current_room
 ```
 
@@ -312,10 +315,10 @@ House Personality should consume values such as:
 ```yaml
 state: Kitchen
 attributes:
-  person: Eric
+  person: Person A
   confidence: medium
   source: bermuda
-  device: Eric phone
+  device: Person A phone
   area_id: kitchen
   updated_at: "2026-06-09T12:00:00-04:00"
 ```
@@ -325,7 +328,7 @@ House Personality should use location as grounding context, not as an authoritat
 When both identity and location are available, the prompt builder may include context such as:
 
 ```text
-Likely speaker: Eric.
+Likely speaker: Person A.
 Likely speaker location: Kitchen.
 Assist device area: Kitchen.
 Location source: Bermuda/device_tracker.
