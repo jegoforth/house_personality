@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import contextlib
+from datetime import UTC, datetime
 import sys
 import types
 from collections.abc import Iterator
@@ -70,6 +71,13 @@ def homeassistant_stubs() -> Iterator[None]:
     aiohttp_client = types.ModuleType("homeassistant.helpers.aiohttp_client")
     aiohttp_client.async_get_clientsession = lambda hass: None
 
+    util = types.ModuleType("homeassistant.util")
+    dt = types.ModuleType("homeassistant.util.dt")
+    dt.UTC = UTC
+    dt.utcnow = lambda: datetime.now(UTC)
+    dt.parse_datetime = datetime.fromisoformat
+    util.dt = dt
+
     config_validation = types.ModuleType("homeassistant.helpers.config_validation")
     config_validation.string = str
     config_validation.boolean = bool
@@ -122,6 +130,8 @@ def homeassistant_stubs() -> Iterator[None]:
             "homeassistant.helpers.intent": intent,
             "homeassistant.helpers.llm": llm,
             "homeassistant.helpers.aiohttp_client": aiohttp_client,
+            "homeassistant.util": util,
+            "homeassistant.util.dt": dt,
             "homeassistant.helpers.config_validation": config_validation,
             "homeassistant.helpers.storage": storage,
             "async_timeout": async_timeout,

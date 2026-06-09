@@ -12,6 +12,7 @@ from .const import (
     CONFIG_KEYS,
     CONF_CONTEXT_ENTITY,
     CONF_IDENTITY_ENTITY,
+    CONF_LOCATION_ENTITY,
     CONF_MEMORY_ENTITY,
     CONF_RECALL_INCLUDE_TURNS,
     CONF_RECALL_LIMIT,
@@ -68,6 +69,7 @@ def _redact_config(values: dict[str, Any]) -> dict[str, Any]:
         elif key in {
             CONF_CONTEXT_ENTITY,
             CONF_IDENTITY_ENTITY,
+            CONF_LOCATION_ENTITY,
             CONF_MEMORY_ENTITY,
             CONF_VISION_ENTITY,
         }:

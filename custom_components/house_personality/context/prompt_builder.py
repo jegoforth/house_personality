@@ -13,6 +13,7 @@ class PromptContext:
     user_message: str
     household_context: str | None = None
     speaker_identity: str | None = None
+    location_context: str | None = None
     memory_context: str | None = None
     vision_context: str | None = None
 
@@ -44,6 +45,17 @@ def build_chat_messages(context: PromptContext) -> list[dict[str, str]]:
                 "content": (
                     "Optional speaker identity from the configured identity entity:\n"
                     f"{context.speaker_identity.strip()}"
+                ),
+            }
+        )
+
+    if context.location_context:
+        messages.append(
+            {
+                "role": "system",
+                "content": (
+                    "Optional person or room location context from the configured location entity:\n"
+                    f"{context.location_context.strip()}"
                 ),
             }
         )
@@ -85,6 +97,7 @@ def describe_prompt_sections(context: PromptContext) -> dict[str, bool]:
         "personality_prompt": bool(context.personality_prompt.strip()),
         "household_context": bool(context.household_context),
         "speaker_identity": bool(context.speaker_identity),
+        "location_context": bool(context.location_context),
         "memory_context": bool(context.memory_context),
         "vision_context": bool(context.vision_context),
         "user_message": bool(context.user_message.strip()),

@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added optional generic location entity context with stale-context handling and GPS field filtering.
 - Added lightweight unit tests for prompt assembly, provider payload construction, diagnostics redaction, and no-tools conversation policy.
 - Added GitHub Actions validation for JSON files, unit tests, Python compilation, and private-data scanning.
 - Added GitHub issue and pull request templates.

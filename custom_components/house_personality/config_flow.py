@@ -26,6 +26,7 @@ from .const import (
     CONF_CONTEXT_ENTITY,
     CONF_DEBUG_LOGGING,
     CONF_IDENTITY_ENTITY,
+    CONF_LOCATION_ENTITY,
     CONF_MAX_TOKENS,
     CONF_MEMORY_ENTITY,
     CONF_PARALLEL_TOOL_CALLS,
@@ -261,6 +262,7 @@ def _config_schema(
             ),
             _optional_entity_key(defaults, CONF_CONTEXT_ENTITY): EntitySelector(),
             _optional_entity_key(defaults, CONF_IDENTITY_ENTITY): EntitySelector(),
+            _optional_entity_key(defaults, CONF_LOCATION_ENTITY): EntitySelector(),
             _optional_entity_key(defaults, CONF_MEMORY_ENTITY): EntitySelector(),
             vol.Required(
                 CONF_RECALL_ENABLED,
@@ -324,6 +326,7 @@ def _normalize_user_input(user_input: dict[str, Any]) -> dict[str, Any]:
         CONF_RESPONSE_FORMAT: user_input[CONF_RESPONSE_FORMAT],
         CONF_CONTEXT_ENTITY: _clean_optional_text(user_input.get(CONF_CONTEXT_ENTITY)),
         CONF_IDENTITY_ENTITY: _clean_optional_text(user_input.get(CONF_IDENTITY_ENTITY)),
+        CONF_LOCATION_ENTITY: _clean_optional_text(user_input.get(CONF_LOCATION_ENTITY)),
         CONF_MEMORY_ENTITY: _clean_optional_text(user_input.get(CONF_MEMORY_ENTITY)),
         CONF_RECALL_ENABLED: bool(user_input[CONF_RECALL_ENABLED]),
         CONF_RECALL_SERVICE_DOMAIN: user_input[CONF_RECALL_SERVICE_DOMAIN].strip(),

@@ -21,6 +21,7 @@ class DiagnosticsTests(unittest.TestCase):
                     "api_key": "secret",
                     "context_entity": "sensor.private_context",
                     "identity_entity": "sensor.private_identity",
+                    "location_entity": "sensor.private_location",
                     "memory_entity": "sensor.private_memory",
                     "vision_entity": "sensor.private_vision",
                     "model": "gpt-4o-mini",
@@ -32,6 +33,7 @@ class DiagnosticsTests(unittest.TestCase):
         self.assertEqual(redacted["api_key"], REDACTED)
         self.assertEqual(redacted["context_entity"], REDACTED)
         self.assertEqual(redacted["identity_entity"], REDACTED)
+        self.assertEqual(redacted["location_entity"], REDACTED)
         self.assertEqual(redacted["memory_entity"], REDACTED)
         self.assertEqual(redacted["vision_entity"], REDACTED)
         self.assertEqual(redacted["unknown_private_key"], REDACTED)

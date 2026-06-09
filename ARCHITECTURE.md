@@ -2,7 +2,7 @@
 
 ## Current Implementation Status
 
-The integration currently implements Phases 0 through 6, current Home Assistant conversation entity compatibility for Assist tool calls, partial Phase 7 provider tuning, partial Phase 8 validation hardening, and Phase 9 public-release documentation readiness.
+The integration currently implements Phases 0 through 6, current Home Assistant conversation entity compatibility for Assist tool calls, partial Phase 7 provider tuning, partial Phase 8 validation hardening, Phase 9 public-release documentation readiness, and partial Phase 10 generic location entity context.
 
 Implemented:
 
@@ -19,6 +19,7 @@ Implemented:
 - Configurable assistant name, provider settings, personality prompt, and debug logging.
 - Optional entity context.
 - Optional entity identity.
+- Optional generic location entity context.
 - Optional read-only memory entity.
 - Optional read-only Voice Assist Recall-compatible service adapter.
 - Memory proposal services with explicit approve/reject workflow.
@@ -34,7 +35,7 @@ Implemented:
 Still not implemented:
 
 - Speaker recognition.
-- Native person/room location integration.
+- Native person/room location calculation.
 - Native public-space room status integration.
 - Direct memory writing.
 - Direct writes to `house_memory.json`.
@@ -894,7 +895,7 @@ Future work:
 
 ### Phase 10: Person and Room Location Context
 
-Status: Planned.
+Status: Partially implemented as single generic location entity context.
 
 Goal: Add optional person/room location context from Home Assistant entities or services without making House Personality responsible for calculating location.
 
@@ -910,13 +911,13 @@ Examples of compatible providers:
 
 Deliverables:
 
-- Location provider interface.
-- Entity-based location adapter.
-- Optional person-location entity configuration.
-- Optional Assist-area/current-room entity configuration.
-- Staleness/max-age handling.
-- Prompt builder support for person/room location context.
-- Debug logs showing location included/skipped.
+- Location provider interface. Future work if multiple adapters are added.
+- Entity-based location adapter. Implemented for one configured entity.
+- Optional person-location entity configuration. Implemented as `location_entity`.
+- Optional Assist-area/current-room entity configuration. Future work.
+- Staleness/max-age handling. Implemented for `updated_at`, `observed_at`, `expires_at`, and `stale_after_seconds`.
+- Prompt builder support for person/room location context. Implemented.
+- Debug logs showing location included/skipped. Implemented.
 - Documentation examples for Bermuda and generic entities.
 
 Acceptance Criteria:
