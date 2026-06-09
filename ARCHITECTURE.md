@@ -20,7 +20,7 @@ Implemented:
 - Optional entity context.
 - Optional entity identity.
 - Optional read-only memory entity.
-- Optional read-only Voice Assist Recall service adapter.
+- Optional read-only Voice Assist Recall-compatible service adapter.
 - Memory proposal services with explicit approve/reject workflow.
 - Optional read-only vision/event summary entity.
 - Single-profile provider tuning for max tokens, tool behavior, and response format.
@@ -33,6 +33,7 @@ Implemented:
 Still not implemented:
 
 - Speaker recognition.
+- Native person/room location integration.
 - Direct memory writing.
 - Direct writes to `house_memory.json`.
 - LLM Vision native integration.
@@ -44,13 +45,13 @@ Still not implemented:
 
 ## Project Summary
 
-`house_personality` is a Home Assistant custom integration that provides a configurable personality, identity, memory, and context layer for Home Assistant Assist conversation agents.
+`house_personality` is a Home Assistant custom integration that provides a configurable personality, identity, memory, location/context, and Home Assistant Assist conversation layer.
 
-The long-term goal is to create a community-friendly, HACS-installable integration that allows Home Assistant users to build a more personal and context-aware voice assistant without hardcoding any specific household, person, voice, provider, or memory system.
+The long-term goal is to create a community-friendly, HACS-installable integration that allows Home Assistant users to build a more personal and context-aware voice assistant without hardcoding any specific household, person, voice, provider, memory system, recognition engine, vision system, or location system.
 
 This project should be designed as a reusable framework.
 
-The maintainer's personal assistant configuration is only one private example use case. The public integration must not hardcode any private household names, user names, entity IDs, prompts, memory files, or assumptions.
+The maintainer's personal assistant configuration is only one private example use case. The public integration must not hardcode any private household names, user names, entity IDs, prompts, memory files, location devices, or assumptions.
 
 ## Design Philosophy
 
@@ -66,6 +67,7 @@ Home Assistant Assist
       -> Load configured personality
       -> Load optional household/context data
       -> Resolve optional speaker identity
+      -> Retrieve optional person/room location context
       -> Retrieve optional conversation memory
       -> Retrieve optional vision/event context
       -> Build final prompt
@@ -86,6 +88,7 @@ The public project should provide:
 - Support for Home Assistant's built-in Assist LLM tools when the configured provider supports OpenAI-compatible tool calls.
 - Optional context injection from Home Assistant entities.
 - Optional speaker identity context.
+- Optional person/room location context from Home Assistant entities.
 - Optional read-only conversation recall integration.
 - Optional read-only vision/event summary context.
 - Safe fallbacks when optional components are missing.
@@ -95,15 +98,17 @@ The public project should provide:
 
 ## Non-Goals
 
-The initial project should not:
+The project should not:
 
 - Hardcode any specific household or assistant persona.
 - Require the maintainer's speaker recognition integration.
 - Require the maintainer's Voice Assist Recall project.
+- Require Bermuda, ESPresense, room-assistant, or any specific person-location integration.
 - Require LLM Vision.
 - Directly modify `house_memory.json` in the first release.
 - Attempt to replace all Home Assistant LLM integrations.
 - Implement custom Home Assistant service-call parsing when the built-in Assist LLM tools can be used.
+- Implement native Bluetooth trilateration, BLE scanning, face recognition, camera analysis, or voice embedding models.
 - Depend on one specific LLM provider.
 - Become a monolithic "everything AI" integration.
 
@@ -144,6 +149,10 @@ house_personality/
         __init__.py
         base.py
         entity_identity.py
+      location/
+        __init__.py
+        base.py
+        entity_location.py
       memory/
         __init__.py
         base.py
@@ -213,29 +222,29 @@ Examples:
 
 The personality should be configurable from the UI and stored in the config entry options.
 
-The initial implementation can use a plain text system prompt.
+The current implementation uses a plain text system prompt.
 
 Future versions may support reusable prompt templates.
 
-### 2. Context
+### 2. General Context
 
-Context is information about the home, household, preferences, devices, rooms, routines, or current state.
+Context is information about the home, household, preferences, devices, rooms, routines, policies, people, or current state.
 
 Initial context sources should be simple and flexible:
 
 - A configured sensor state.
-- A configured sensor’s attributes.
+- A configured sensor's attributes.
 - A configured text helper.
 - A configured template sensor.
 - Multiple context entities in a future phase.
 
-The integration should not assume a specific memory file format in the MVP.
+The integration should not assume a specific memory file or profile format.
 
 ### 3. Identity
 
 Identity is the likely person speaking.
 
-Initial identity support should use a generic entity-based adapter.
+Identity support should use a generic entity-based adapter.
 
 For example, a user may configure an entity such as:
 
@@ -247,9 +256,76 @@ sensor.assist_speaker_identity
 
 The integration should read that entity and include it in the prompt as optional speaker context.
 
-The integration should not directly depend on any specific speaker recognition integration in the MVP.
+The integration should not directly depend on any specific speaker recognition integration.
 
-### 4. Memory
+### 4. Person and Room Location
+
+Person and room location describe where a person, device, or current Assist interaction is likely taking place.
+
+This is a high-value context source for natural requests such as:
+
+```text
+Turn on the lights in here.
+Make it warmer where I am.
+Is anyone still downstairs?
+Where is Shelley?
+Did I leave my phone in the office?
+```
+
+House Personality should not perform Bluetooth trilateration, BLE scanning, GPS tracking, face tracking, or room-presence calculations itself.
+
+Instead, House Personality should consume optional location context from Home Assistant entities or services produced by integrations such as:
+
+- Bermuda.
+- ESPresense.
+- room-assistant.
+- Home Assistant `person` entities.
+- Home Assistant `device_tracker` entities.
+- Template sensors.
+- Manual helpers.
+- Future local presence or room context integrations.
+
+The initial person/room location design should be entity-based and adapter-based.
+
+Example location entities:
+
+```text
+sensor.eric_current_area
+sensor.shelley_current_room
+sensor.last_detected_person_area
+device_tracker.eric_phone
+person.eric
+input_text.current_room
+```
+
+House Personality should consume values such as:
+
+```yaml
+state: Kitchen
+attributes:
+  person: Eric
+  confidence: medium
+  source: bermuda
+  device: Eric phone
+  area_id: kitchen
+  updated_at: "2026-06-09T12:00:00-04:00"
+```
+
+House Personality should use location as grounding context, not as an authoritative identity or control source.
+
+When both identity and location are available, the prompt builder may include context such as:
+
+```text
+Likely speaker: Eric.
+Likely speaker location: Kitchen.
+Assist device area: Kitchen.
+Location source: Bermuda/device_tracker.
+Confidence: medium.
+```
+
+Location context should remain optional and should fail gracefully when stale, unavailable, unknown, or disabled.
+
+### 5. Memory
 
 Memory is prior conversation or preference context that may be relevant to the current request.
 
@@ -259,7 +335,7 @@ Voice Assist Recall-style integration is service-based and optional. House Perso
 
 Memory retrieval should be modular and replaceable.
 
-### 5. Vision/Event Context
+### 6. Vision/Event Context
 
 Vision/event context may come from LLM Vision, Frigate, camera event summaries, or other entity-based sources.
 
@@ -269,7 +345,7 @@ Native LLM Vision integration remains future work.
 
 House Personality should consume vision summaries; it should not perform camera analysis itself unless explicitly added in a future phase.
 
-### 6. Provider
+### 7. Provider
 
 The LLM provider is the backend that receives the final prompt and returns a response.
 
@@ -285,7 +361,7 @@ This allows support for:
 - Ollama through compatible endpoints if available
 - Other OpenAI-compatible gateways
 
-Provider code must be isolated from prompt/context/memory code.
+Provider code must be isolated from prompt/context/memory/location code.
 
 When a current Home Assistant `ChatLog` is available, House Personality should request Home Assistant's built-in Assist LLM API data and pass the resulting tool definitions to the configured provider in OpenAI-compatible format.
 
@@ -304,6 +380,7 @@ PromptContext(
     personality_prompt=str,
     user_message=str,
     speaker_identity=Optional[str],
+    location_context=Optional[str],
     household_context=Optional[str],
     memory_context=Optional[str],
     vision_context=Optional[str],
@@ -327,6 +404,9 @@ System:
   Optional speaker identity.
 
 System:
+  Optional person/room location context.
+
+System:
   Optional relevant memory.
 
 System:
@@ -347,11 +427,13 @@ Therefore:
 - Do not log full prompts by default.
 - Do not log API keys.
 - Do not log full memory contents by default.
+- Do not log full household profiles by default.
+- Do not log detailed person-location history by default.
 - Provide debug logging that can be enabled intentionally.
 - Provide diagnostics that redact secrets and sensitive values.
-- Do not write memory automatically in the MVP.
+- Do not write memory automatically.
 - Do not assume all users want persistent memory.
-- Make memory features optional.
+- Make memory, identity, location, and vision features optional.
 - Clearly document what information is sent to the configured LLM provider.
 
 ## HACS and Home Assistant Compliance
@@ -429,11 +511,22 @@ Recommended provider type:
 OpenAI-compatible
 ```
 
-Recommended initial optional fields:
+Recommended future optional person/room location fields:
+
+```text
+use_location_context
+location_entity
+person_location_entity
+assist_area_entity
+location_max_age_seconds
+```
+
+Recommended optional context fields:
 
 ```text
 context_entity
 identity_entity
+location_entity
 memory_entity
 vision_entity
 ```
@@ -449,18 +542,19 @@ The conversation request lifecycle should be:
 2. House Personality receives the conversation input.
 3. Load config entry options.
 4. Read optional identity entity.
-5. Read optional context entity.
-6. Read optional memory entity or memory adapter.
-7. Read optional vision/event summary entity.
-8. Build final prompt.
-9. If a current ChatLog is available, request Home Assistant's built-in Assist LLM API data.
-10. Convert Home Assistant tools into OpenAI-compatible tool definitions.
-11. Send chat log messages and tools to the configured provider.
-12. If the provider returns tool calls, execute them through `chat_log.async_add_assistant_content(...)`.
-13. Send resulting tool responses back to the provider.
-14. Return the final provider response to Home Assistant Assist.
-15. Log timing and included context sections.
-16. Store memory proposals only when explicitly created through the proposal workflow.
+5. Read optional person/room location entity.
+6. Read optional context entity.
+7. Read optional memory entity or memory adapter.
+8. Read optional vision/event summary entity.
+9. Build final prompt.
+10. If a current ChatLog is available, request Home Assistant's built-in Assist LLM API data.
+11. Convert Home Assistant tools into OpenAI-compatible tool definitions.
+12. Send chat log messages and tools to the configured provider.
+13. If the provider returns tool calls, execute them through `chat_log.async_add_assistant_content(...)`.
+14. Send resulting tool responses back to the provider.
+15. Return the final provider response to Home Assistant Assist.
+16. Log timing and included context sections.
+17. Store memory proposals only when explicitly created through the proposal workflow.
 ```
 
 ## Error Handling
@@ -479,6 +573,13 @@ If the identity entity is unavailable:
 ```text
 Continue with unknown speaker.
 Log that identity was skipped.
+```
+
+If the location entity is unavailable, stale, unknown, or disabled:
+
+```text
+Continue without location context.
+Log that location was skipped.
 ```
 
 If memory is unavailable:
@@ -504,9 +605,10 @@ Prefer keeping:
 1. Personality prompt
 2. Current user message
 3. Speaker identity
-4. Most relevant memory
-5. Household context
-6. Vision/event context
+4. Person/room location context
+5. Most relevant memory
+6. Household context
+7. Vision/event context
 ```
 
 ## Development Phases
@@ -515,22 +617,7 @@ Prefer keeping:
 
 Status: Implemented.
 
-Goal:
-
-Create a clean, public, HACS-compatible repository skeleton.
-
-Deliverables:
-
-- Repository structure.
-- `README.md`.
-- `ARCHITECTURE.md`.
-- `hacs.json`.
-- `LICENSE`.
-- `custom_components/house_personality/manifest.json`.
-- Basic constants.
-- Initial translations.
-- Placeholder config flow.
-- Placeholder diagnostics.
+Goal: Create a clean, public, HACS-compatible repository skeleton.
 
 Acceptance Criteria:
 
@@ -544,19 +631,7 @@ Acceptance Criteria:
 
 Status: Implemented.
 
-Goal:
-
-Register House Personality as a Home Assistant conversation agent and return responses from an OpenAI-compatible provider.
-
-Deliverables:
-
-- Conversation platform implementation.
-- OpenAI-compatible provider adapter.
-- Config flow for provider settings.
-- Configurable assistant/personality prompt.
-- Basic prompt builder.
-- Friendly error handling.
-- Debug logging.
+Goal: Register House Personality as a Home Assistant conversation agent and return responses from an OpenAI-compatible provider.
 
 Acceptance Criteria:
 
@@ -572,17 +647,7 @@ Acceptance Criteria:
 
 Status: Implemented.
 
-Goal:
-
-Add optional entity-based context and speaker identity.
-
-Deliverables:
-
-- Context entity support.
-- Identity entity support.
-- Prompt builder support for context and identity.
-- Debug logs showing included/skipped context.
-- Options flow for changing context and identity entities.
+Goal: Add optional entity-based context and speaker identity.
 
 Acceptance Criteria:
 
@@ -596,17 +661,7 @@ Acceptance Criteria:
 
 Status: Implemented as read-only entity memory.
 
-Goal:
-
-Add a generic memory adapter system.
-
-Deliverables:
-
-- Memory provider interface.
-- Entity-based memory adapter.
-- Optional service-based memory adapter.
-- Prompt builder support for memory snippets.
-- Memory inclusion limits.
+Goal: Add a generic memory adapter system.
 
 Acceptance Criteria:
 
@@ -616,21 +671,11 @@ Acceptance Criteria:
 - Memory failures do not block conversation.
 - Prompt size controls prevent runaway context.
 
-### Phase 4: Native Voice Assist Recall Adapter
+### Phase 4: Voice Assist Recall-Compatible Adapter
 
 Status: Implemented as an optional read-only service adapter.
 
-Goal:
-
-Integrate with the separate Voice Assist Recall project without making it a hard dependency.
-
-Deliverables:
-
-- Optional service adapter for Voice Assist Recall-compatible recall providers.
-- Configurable recall service domain and service name.
-- Retrieval of relevant conversation snippets.
-- Speaker-aware memory lookup when identity is available.
-- Graceful fallback when unavailable.
+Goal: Integrate with recall services without making any specific recall project a hard dependency.
 
 Acceptance Criteria:
 
@@ -643,18 +688,7 @@ Acceptance Criteria:
 
 Status: Implemented as local proposal storage and explicit services. Approved proposals are not written anywhere by House Personality.
 
-Goal:
-
-Allow the assistant to propose memory updates without automatically changing persistent memory.
-
-Deliverables:
-
-- Memory proposal model.
-- Service for creating proposed memory updates.
-- Service for listing memory update proposals.
-- Events fired when memory updates are proposed or reviewed.
-- Persistent local storage for proposals.
-- Approval/rejection services.
+Goal: Allow the assistant to propose memory updates without automatically changing persistent memory.
 
 Acceptance Criteria:
 
@@ -668,17 +702,7 @@ Acceptance Criteria:
 
 Status: Implemented as optional read-only entity-based event summary context. Native LLM Vision integration is still future work.
 
-Goal:
-
-Add optional support for recent visual or event context from external integrations.
-
-Deliverables:
-
-- Vision/event context provider interface.
-- Entity-based event summary adapter.
-- Placeholder for future LLM Vision adapter only if needed.
-- Prompt builder support for recent event context.
-- Configuration options for enabling/disabling vision context.
+Goal: Add optional support for recent visual or event context from external integrations.
 
 Acceptance Criteria:
 
@@ -692,19 +716,7 @@ Acceptance Criteria:
 
 Status: Implemented after Phase 6.
 
-Goal:
-
-Make the House Personality conversation entity compatible with the current Home Assistant conversation entity and LLM tool APIs so Assist can query and control exposed entities through compatible providers.
-
-Deliverables:
-
-- `_async_handle_message(self, user_input, chat_log)` implementation.
-- `supported_languages` returning `"*"`.
-- `ConversationEntityFeature.CONTROL` support.
-- Home Assistant built-in Assist LLM API data requested through `chat_log.async_provide_llm_data(...)`.
-- OpenAI-compatible tool definitions passed to the configured provider.
-- Provider tool calls executed through `chat_log.async_add_assistant_content(...)`.
-- Final provider response returned through the conversation framework.
+Goal: Make the House Personality conversation entity compatible with the current Home Assistant conversation entity and LLM tool APIs so Assist can query and control exposed entities through compatible providers.
 
 Acceptance Criteria:
 
@@ -719,93 +731,107 @@ Acceptance Criteria:
 
 Status: Partially implemented as single-profile provider configuration. Multiple provider profiles, provider fallback chains, and streaming are still future work.
 
-Goal:
+Goal: Improve provider flexibility and resilience.
 
-Improve provider flexibility and resilience.
+Implemented:
 
-Deliverables:
+- Maximum response token setting.
+- Tool enable/disable switch.
+- Tool-choice setting.
+- Parallel tool-call setting.
+- Response-format setting.
 
-- Maximum response token setting. Implemented.
-- Tool enable/disable switch. Implemented.
-- Tool-choice setting. Implemented.
-- Parallel tool-call setting. Implemented.
-- Response-format setting. Implemented.
-- Multiple provider profiles. Future work.
-- Optional local/cloud fallback provider. Future work.
-- Provider test service. Future work.
-- Streaming support if feasible. Future work.
+Future work:
 
-Acceptance Criteria:
-
-- User can tune provider response length.
-- User can disable tool passing for providers that reject tool schemas.
-- User can choose common OpenAI-compatible tool behavior.
-- User can keep the default provider behavior for broad compatibility.
-- Provider errors are readable and useful.
+- Multiple provider profiles.
+- Optional local/cloud fallback provider.
+- Provider test service.
+- Streaming support if feasible.
 
 ### Phase 8: Diagnostics, Testing, and Hardening
 
 Status: Partially implemented.
 
-Goal:
+Goal: Prepare the integration for broader public use.
 
-Prepare the integration for broader public use.
-
-Deliverables:
+Implemented:
 
 - Diagnostics support with redaction.
-- Unit tests for prompt builder. Implemented for prompt assembly.
-- Unit tests for provider adapter. Implemented for payload construction.
-- Unit tests for context handling.
-- Unit tests for diagnostics redaction. Implemented.
-- Unit tests for no-tools conversation policy. Implemented.
-- Linting.
+- Unit tests for prompt assembly.
+- Unit tests for provider payload construction.
+- Unit tests for diagnostics redaction.
+- Unit tests for no-tools conversation policy.
+- GitHub issue templates.
+- GitHub pull request template.
+- GitHub validation workflow for JSON validation, unit tests, Python compilation, and private-data scanning.
+
+Future work:
+
+- More context adapter tests.
+- Missing optional entity tests.
+- Provider error tests.
 - Hassfest validation if applicable.
-- GitHub issue templates. Implemented.
-- GitHub pull request template. Implemented.
-- GitHub validation workflow. Implemented for JSON validation, unit tests, Python compilation, and private-data scanning.
 - GitHub release workflow.
-- Clear troubleshooting docs.
-
-Acceptance Criteria:
-
-- Sensitive values are redacted in diagnostics.
-- Prompt assembly is tested.
-- Provider errors are tested.
-- Missing optional entities are tested.
-- Installation and upgrade docs are clear.
-- HACS installation path is documented.
 
 ### Phase 9: Public Release Readiness
 
 Status: In progress.
 
-Goal:
+Goal: Prepare for initial public release.
 
-Prepare for initial public release.
+Implemented:
+
+- Example configurations.
+- Privacy documentation.
+- Security reporting guidance.
+- Roadmap.
+- Known limitations.
+- HACS custom repository install instructions.
+- Release checklist.
+- Community forum post draft.
+
+Future work:
+
+- Tagged release.
+- Screenshots if useful.
+- Final README review.
+- Public feedback.
+
+### Phase 10: Person and Room Location Context
+
+Status: Planned.
+
+Goal: Add optional person/room location context from Home Assistant entities or services without making House Personality responsible for calculating location.
+
+Examples of compatible providers:
+
+- Bermuda.
+- ESPresense.
+- room-assistant.
+- Home Assistant `person` entities.
+- Home Assistant `device_tracker` entities.
+- Template sensors.
+- Manual helpers.
 
 Deliverables:
 
-- Tagged release.
-- Complete README. In progress.
-- Screenshots if useful.
-- Example configurations. Implemented.
-- Privacy documentation. Implemented.
-- Security reporting guidance. Implemented.
-- Roadmap. Implemented.
-- Known limitations. Implemented.
-- HACS custom repository install instructions. Implemented.
-- Release checklist. Implemented.
-- Community forum post draft. Implemented.
+- Location provider interface.
+- Entity-based location adapter.
+- Optional person-location entity configuration.
+- Optional Assist-area/current-room entity configuration.
+- Staleness/max-age handling.
+- Prompt builder support for person/room location context.
+- Debug logs showing location included/skipped.
+- Documentation examples for Bermuda and generic entities.
 
 Acceptance Criteria:
 
-- A new user can install through HACS custom repositories.
-- A new user can configure a basic OpenAI-compatible provider.
-- A new user can create a working personality prompt.
-- Optional features are clearly marked as optional.
-- The project does not expose private maintainer configuration.
-- The repository is ready for public feedback.
+- Location context is optional.
+- House Personality works without Bermuda or any location integration.
+- User can configure a generic entity that represents current person, room, area, or device location.
+- Unavailable, unknown, or stale location data does not break conversation.
+- Location context can help ground ambiguous requests like "in here" or "where I am".
+- No Bluetooth scanning, trilateration, face recognition, or room detection is performed by House Personality.
 
 ## Services
 
@@ -837,6 +863,7 @@ Logging should include:
 - LLM latency.
 - Context included or skipped.
 - Identity included or skipped.
+- Location included or skipped.
 - Memory included or skipped.
 - Approximate prompt size.
 - Friendly provider error summaries.
@@ -847,6 +874,7 @@ Logging should not include by default:
 - Full prompts.
 - Full memory.
 - Full household profiles.
+- Full person-location history.
 - Full responses.
 
 Verbose prompt logging may be added later behind an explicit debug setting.
@@ -859,6 +887,7 @@ The integration should eventually support configurable limits, such as:
 
 ```text
 Maximum context characters
+Maximum location characters
 Maximum memory snippets
 Maximum vision/event snippets
 Maximum total prompt characters
@@ -870,9 +899,10 @@ Recommended priority when trimming:
 1. Keep personality prompt.
 2. Keep current user message.
 3. Keep speaker identity.
-4. Keep most relevant memory.
-5. Trim household context.
-6. Trim vision/event context.
+4. Keep current person/room location.
+5. Keep most relevant memory.
+6. Trim household context.
+7. Trim vision/event context.
 ```
 
 ## Privacy Documentation Requirements
@@ -882,6 +912,7 @@ The README should clearly explain:
 - What data may be sent to the LLM provider.
 - How context entities are used.
 - How identity entities are used.
+- How person/room location entities are used.
 - Whether memory is stored.
 - Whether prompts are logged.
 - How to disable optional features.
@@ -899,6 +930,7 @@ Provider: OpenAI-compatible endpoint
 Personality: Friendly, concise, helpful
 Context: none
 Identity: none
+Location: none
 Memory: none
 ```
 
@@ -910,6 +942,7 @@ A user configures:
 Assistant name: Family Assistant
 Context entity: sensor.home_context_summary
 Identity: none
+Location: none
 Memory: none
 ```
 
@@ -921,6 +954,20 @@ A user configures:
 Assistant name: Home Assistant
 Context entity: sensor.home_context_summary
 Identity entity: sensor.last_recognized_speaker
+Location: none
+Memory: none
+```
+
+### Room-Aware Assistant
+
+A user configures:
+
+```text
+Assistant name: Home Assistant
+Context entity: sensor.home_context_summary
+Identity entity: sensor.last_recognized_speaker
+Location entity: sensor.eric_current_area
+Location source: Bermuda or equivalent entity
 Memory: none
 ```
 
@@ -932,7 +979,8 @@ A user configures:
 Assistant name: Personal Assistant
 Context entity: sensor.home_context_summary
 Identity entity: sensor.speaker_recognition_last_user
-Memory provider: Voice Assist Recall
+Location entity: sensor.current_person_area
+Memory provider: Voice Assist Recall-compatible service
 Vision provider: event summary entity
 ```
 
@@ -942,7 +990,7 @@ This advanced example should be documented as optional and not required.
 
 - Keep provider logic separate from Home Assistant conversation logic.
 - Keep prompt building separate from provider calls.
-- Keep identity, memory, context, and vision as adapters.
+- Keep identity, location, memory, context, and vision as adapters.
 - Avoid hard dependencies on optional integrations.
 - Use Home Assistant async patterns.
 - Keep config entries and options clean.
@@ -955,7 +1003,7 @@ This advanced example should be documented as optional and not required.
 
 The initial Codex implementation target was Phase 0 and Phase 1 only.
 
-That target is complete. Memory, recall, proposal, and event-summary work has since been added as optional adapters. Speaker recognition, native LLM Vision, camera analysis, provider fallback chains, multiple provider profiles, streaming, and direct memory writing remain out of scope until explicitly requested.
+That target is complete. Memory, recall, proposal, and event-summary work has since been added as optional adapters. Speaker recognition, native person-location calculation, native LLM Vision, camera analysis, provider fallback chains, multiple provider profiles, streaming, and direct memory writing remain out of scope until explicitly requested.
 
 The initial implementation proved:
 
@@ -968,7 +1016,7 @@ Prompt sent to OpenAI-compatible endpoint
 Response returned to Assist
 ```
 
-Future implementation should continue to preserve the same boundaries: optional adapters, no private household assumptions, no automatic memory writes, and no custom home-control parser when Home Assistant's Assist LLM tools are available.
+Future implementation should continue to preserve the same boundaries: optional adapters, no private household assumptions, no automatic memory writes, no native recognition/location engines, and no custom home-control parser when Home Assistant's Assist LLM tools are available.
 
 ## Long-Term Vision
 
@@ -981,9 +1029,10 @@ The integration should allow users to bring their own:
 - LLM provider.
 - Home context.
 - Speaker identity source.
+- Person/room location source.
 - Memory system.
 - Vision/event source.
 
 The maintainer's private setup should serve as an advanced test case, not the default behavior.
 
-The final goal is a flexible Home Assistant Assist conversation agent that feels aware of the home, aware of the speaker, and able to use memory responsibly while remaining installable, understandable, and safe for community use.
+The final goal is a flexible Home Assistant Assist conversation agent that feels aware of the home, aware of the speaker, aware of relevant room/location context, and able to use memory responsibly while remaining installable, understandable, and safe for community use.
