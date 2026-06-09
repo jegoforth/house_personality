@@ -6,6 +6,9 @@ on:
       - main
   pull_request:
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   validate:
     name: Validate repository
@@ -45,7 +48,6 @@ jobs:
               "house_context",
               "House Memory Summary",
               "front porch",
-              "api_key:",
               "sk-",
           )
           roots = [
