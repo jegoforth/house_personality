@@ -34,6 +34,7 @@ Still not implemented:
 
 - Speaker recognition.
 - Native person/room location integration.
+- Native public-space room status integration.
 - Direct memory writing.
 - Direct writes to `house_memory.json`.
 - LLM Vision native integration.
@@ -45,13 +46,13 @@ Still not implemented:
 
 ## Project Summary
 
-`house_personality` is a Home Assistant custom integration that provides a configurable personality, identity, memory, location/context, and Home Assistant Assist conversation layer.
+`house_personality` is a Home Assistant custom integration that provides a configurable personality, identity, memory, location/context, room-status context, and Home Assistant Assist conversation layer.
 
-The long-term goal is to create a community-friendly, HACS-installable integration that allows Home Assistant users to build a more personal and context-aware voice assistant without hardcoding any specific household, person, voice, provider, memory system, recognition engine, vision system, or location system.
+The long-term goal is to create a community-friendly, HACS-installable integration that allows Home Assistant users to build a more personal and context-aware voice assistant without hardcoding any specific household, person, voice, provider, memory system, recognition engine, vision system, camera system, or location system.
 
 This project should be designed as a reusable framework.
 
-The maintainer's personal assistant configuration is only one private example use case. The public integration must not hardcode any private household names, user names, entity IDs, prompts, memory files, location devices, or assumptions.
+The maintainer's personal assistant configuration is only one private example use case. The public integration must not hardcode any private household names, user names, entity IDs, prompts, memory files, location devices, camera devices, floor plans, or assumptions.
 
 ## Design Philosophy
 
@@ -68,6 +69,7 @@ Home Assistant Assist
       -> Load optional household/context data
       -> Resolve optional speaker identity
       -> Retrieve optional person/room location context
+      -> Retrieve optional public-space room status context
       -> Retrieve optional conversation memory
       -> Retrieve optional vision/event context
       -> Build final prompt
@@ -89,6 +91,7 @@ The public project should provide:
 - Optional context injection from Home Assistant entities.
 - Optional speaker identity context.
 - Optional person/room location context from Home Assistant entities.
+- Optional public-space room status context from Home Assistant entities.
 - Optional read-only conversation recall integration.
 - Optional read-only vision/event summary context.
 - Safe fallbacks when optional components are missing.
@@ -104,11 +107,13 @@ The project should not:
 - Require the maintainer's speaker recognition integration.
 - Require the maintainer's Voice Assist Recall project.
 - Require Bermuda, ESPresense, room-assistant, or any specific person-location integration.
-- Require LLM Vision.
+- Require LLM Vision, Frigate, or any specific camera/vision integration.
 - Directly modify `house_memory.json` in the first release.
 - Attempt to replace all Home Assistant LLM integrations.
 - Implement custom Home Assistant service-call parsing when the built-in Assist LLM tools can be used.
-- Implement native Bluetooth trilateration, BLE scanning, face recognition, camera analysis, or voice embedding models.
+- Implement native Bluetooth trilateration, BLE scanning, face recognition, camera analysis, video recording, continuous camera streaming, or voice embedding models.
+- Analyze raw images during normal conversation turns.
+- Encourage cameras in private spaces such as bedrooms or bathrooms.
 - Depend on one specific LLM provider.
 - Become a monolithic "everything AI" integration.
 
@@ -153,6 +158,10 @@ house_personality/
         __init__.py
         base.py
         entity_location.py
+      room_status/
+        __init__.py
+        base.py
+        entity_room_status.py
       memory/
         __init__.py
         base.py
@@ -325,7 +334,61 @@ Confidence: medium.
 
 Location context should remain optional and should fail gracefully when stale, unavailable, unknown, or disabled.
 
-### 5. Memory
+### 5. Public-Space Room Status
+
+Room status describes what is currently or recently happening in a shared/public area of the home.
+
+Room status may be generated from cameras, motion sensors, occupancy sensors, Bluetooth presence, door sensors, Frigate events, LLM Vision summaries, template sensors, manual helpers, or other Home Assistant entities.
+
+House Personality should consume room status as short text summaries or structured entity attributes. It should not continuously watch camera streams or analyze raw camera images during normal conversation turns.
+
+Examples of useful room status summaries:
+
+```text
+Kitchen appears occupied. Someone is near the counter. Summary age: 45 seconds.
+Living room appears empty. TV is on. Summary age: 2 minutes.
+Foyer motion was detected near the front door. Summary age: 20 seconds.
+Dining room is occupied. People appear seated at the table. Summary age: 1 minute.
+```
+
+Good public-space camera use cases:
+
+- Kitchen activity/status.
+- Living room occupancy/status.
+- Foyer/entry status.
+- Dining/common-area status.
+- Package/object/context summaries in shared spaces.
+
+Poor or out-of-scope camera use cases:
+
+- Bedrooms.
+- Bathrooms.
+- Private changing/sleeping areas.
+- Always-on raw image prompt injection.
+- Long-term image retention by House Personality.
+- Face recognition inside House Personality.
+- Continuous surveillance by the conversation agent.
+
+House Personality should consume values such as:
+
+```yaml
+state: occupied
+attributes:
+  room: Kitchen
+  area_id: kitchen
+  summary: "A person appears to be near the counter. The room lights are on."
+  source: llm_vision
+  camera: camera.kitchen
+  confidence: medium
+  observed_at: "2026-06-09T12:00:00-04:00"
+  summary_age_seconds: 45
+```
+
+Room status context should remain optional and should fail gracefully when stale, unavailable, unknown, private, or disabled.
+
+House Personality should treat room status as conversational grounding, not proof. For example, it may say "It looks like the kitchen is occupied" rather than making absolute claims.
+
+### 6. Memory
 
 Memory is prior conversation or preference context that may be relevant to the current request.
 
@@ -335,7 +398,7 @@ Voice Assist Recall-style integration is service-based and optional. House Perso
 
 Memory retrieval should be modular and replaceable.
 
-### 6. Vision/Event Context
+### 7. Vision/Event Context
 
 Vision/event context may come from LLM Vision, Frigate, camera event summaries, or other entity-based sources.
 
@@ -343,9 +406,9 @@ The current implementation supports optional read-only text summary context from
 
 Native LLM Vision integration remains future work.
 
-House Personality should consume vision summaries; it should not perform camera analysis itself unless explicitly added in a future phase.
+House Personality should consume vision summaries; it should not perform camera analysis itself unless explicitly added in a future setup/admin workflow.
 
-### 7. Provider
+### 8. Provider
 
 The LLM provider is the backend that receives the final prompt and returns a response.
 
@@ -361,7 +424,7 @@ This allows support for:
 - Ollama through compatible endpoints if available
 - Other OpenAI-compatible gateways
 
-Provider code must be isolated from prompt/context/memory/location code.
+Provider code must be isolated from prompt/context/memory/location/room-status code.
 
 When a current Home Assistant `ChatLog` is available, House Personality should request Home Assistant's built-in Assist LLM API data and pass the resulting tool definitions to the configured provider in OpenAI-compatible format.
 
@@ -381,6 +444,7 @@ PromptContext(
     user_message=str,
     speaker_identity=Optional[str],
     location_context=Optional[str],
+    room_status_context=Optional[str],
     household_context=Optional[str],
     memory_context=Optional[str],
     vision_context=Optional[str],
@@ -407,6 +471,9 @@ System:
   Optional person/room location context.
 
 System:
+  Optional public-space room status context.
+
+System:
   Optional relevant memory.
 
 System:
@@ -429,11 +496,15 @@ Therefore:
 - Do not log full memory contents by default.
 - Do not log full household profiles by default.
 - Do not log detailed person-location history by default.
+- Do not log detailed room-status history by default.
+- Do not send raw camera images to the LLM during normal conversation turns.
+- Do not encourage cameras in bedrooms, bathrooms, or private spaces.
+- Prefer triggered snapshots and short text summaries over continuous camera analysis.
 - Provide debug logging that can be enabled intentionally.
 - Provide diagnostics that redact secrets and sensitive values.
 - Do not write memory automatically.
 - Do not assume all users want persistent memory.
-- Make memory, identity, location, and vision features optional.
+- Make memory, identity, location, room status, and vision features optional.
 - Clearly document what information is sent to the configured LLM provider.
 
 ## HACS and Home Assistant Compliance
@@ -521,12 +592,24 @@ assist_area_entity
 location_max_age_seconds
 ```
 
+Recommended future optional room-status fields:
+
+```text
+use_room_status_context
+room_status_entity
+room_status_entities
+room_status_max_age_seconds
+public_space_only
+include_camera_source_name
+```
+
 Recommended optional context fields:
 
 ```text
 context_entity
 identity_entity
 location_entity
+room_status_entity
 memory_entity
 vision_entity
 ```
@@ -543,18 +626,19 @@ The conversation request lifecycle should be:
 3. Load config entry options.
 4. Read optional identity entity.
 5. Read optional person/room location entity.
-6. Read optional context entity.
-7. Read optional memory entity or memory adapter.
-8. Read optional vision/event summary entity.
-9. Build final prompt.
-10. If a current ChatLog is available, request Home Assistant's built-in Assist LLM API data.
-11. Convert Home Assistant tools into OpenAI-compatible tool definitions.
-12. Send chat log messages and tools to the configured provider.
-13. If the provider returns tool calls, execute them through `chat_log.async_add_assistant_content(...)`.
-14. Send resulting tool responses back to the provider.
-15. Return the final provider response to Home Assistant Assist.
-16. Log timing and included context sections.
-17. Store memory proposals only when explicitly created through the proposal workflow.
+6. Read optional public-space room status entity/entities.
+7. Read optional context entity.
+8. Read optional memory entity or memory adapter.
+9. Read optional vision/event summary entity.
+10. Build final prompt.
+11. If a current ChatLog is available, request Home Assistant's built-in Assist LLM API data.
+12. Convert Home Assistant tools into OpenAI-compatible tool definitions.
+13. Send chat log messages and tools to the configured provider.
+14. If the provider returns tool calls, execute them through `chat_log.async_add_assistant_content(...)`.
+15. Send resulting tool responses back to the provider.
+16. Return the final provider response to Home Assistant Assist.
+17. Log timing and included context sections.
+18. Store memory proposals only when explicitly created through the proposal workflow.
 ```
 
 ## Error Handling
@@ -580,6 +664,13 @@ If the location entity is unavailable, stale, unknown, or disabled:
 ```text
 Continue without location context.
 Log that location was skipped.
+```
+
+If room-status context is unavailable, stale, private, unknown, or disabled:
+
+```text
+Continue without room-status context.
+Log that room status was skipped.
 ```
 
 If memory is unavailable:
@@ -608,7 +699,8 @@ Prefer keeping:
 4. Person/room location context
 5. Most relevant memory
 6. Household context
-7. Vision/event context
+7. Current public-space room status
+8. Vision/event context
 ```
 
 ## Development Phases
@@ -833,6 +925,47 @@ Acceptance Criteria:
 - Location context can help ground ambiguous requests like "in here" or "where I am".
 - No Bluetooth scanning, trilateration, face recognition, or room detection is performed by House Personality.
 
+### Phase 11: Public-Space Room Status Context
+
+Status: Planned.
+
+Goal: Add optional public-space room status context from Home Assistant entities or services without making House Personality responsible for camera analysis, surveillance, or image processing.
+
+Examples of compatible providers:
+
+- LLM Vision-generated summary sensors.
+- Frigate events or summary sensors.
+- Home Assistant camera snapshot automations.
+- Motion or occupancy sensors.
+- Bluetooth/person-location integrations.
+- Door/contact sensors.
+- Template sensors that summarize multiple signals.
+- Manual helpers.
+
+Deliverables:
+
+- Room status provider interface.
+- Entity-based room status adapter.
+- Optional room-status entity configuration.
+- Optional support for multiple public-space room status entities.
+- Staleness/max-age handling.
+- Privacy guardrails and documentation for public-space-only camera-derived context.
+- Prompt builder support for room status context.
+- Debug logs showing room status included/skipped.
+- Documentation examples for triggered snapshot summaries and generic room-status entities.
+
+Acceptance Criteria:
+
+- Room status context is optional.
+- House Personality works without LLM Vision, Frigate, or any camera integration.
+- User can configure one or more generic entities that represent public-space room status.
+- Unavailable, unknown, stale, or private room-status data does not break conversation.
+- Room status context can help answer requests like "what is going on downstairs?" or ground ambiguous requests such as "turn on the lights where people are."
+- House Personality does not continuously watch camera feeds.
+- House Personality does not send raw images to the provider during normal conversation turns.
+- House Personality does not perform face recognition, object detection, or camera analysis itself.
+- Documentation discourages cameras in bedrooms, bathrooms, or private spaces.
+
 ## Services
 
 Implemented services:
@@ -864,6 +997,7 @@ Logging should include:
 - Context included or skipped.
 - Identity included or skipped.
 - Location included or skipped.
+- Room status included or skipped.
 - Memory included or skipped.
 - Approximate prompt size.
 - Friendly provider error summaries.
@@ -875,6 +1009,8 @@ Logging should not include by default:
 - Full memory.
 - Full household profiles.
 - Full person-location history.
+- Full room-status history.
+- Full camera summaries beyond compact current context.
 - Full responses.
 
 Verbose prompt logging may be added later behind an explicit debug setting.
@@ -888,6 +1024,7 @@ The integration should eventually support configurable limits, such as:
 ```text
 Maximum context characters
 Maximum location characters
+Maximum room-status characters
 Maximum memory snippets
 Maximum vision/event snippets
 Maximum total prompt characters
@@ -901,8 +1038,9 @@ Recommended priority when trimming:
 3. Keep speaker identity.
 4. Keep current person/room location.
 5. Keep most relevant memory.
-6. Trim household context.
-7. Trim vision/event context.
+6. Keep directly relevant current room status.
+7. Trim household context.
+8. Trim broader vision/event context.
 ```
 
 ## Privacy Documentation Requirements
@@ -913,6 +1051,8 @@ The README should clearly explain:
 - How context entities are used.
 - How identity entities are used.
 - How person/room location entities are used.
+- How public-space room-status entities are used.
+- Whether camera-derived summaries are sent to the provider.
 - Whether memory is stored.
 - Whether prompts are logged.
 - How to disable optional features.
@@ -931,6 +1071,7 @@ Personality: Friendly, concise, helpful
 Context: none
 Identity: none
 Location: none
+Room status: none
 Memory: none
 ```
 
@@ -943,6 +1084,7 @@ Assistant name: Family Assistant
 Context entity: sensor.home_context_summary
 Identity: none
 Location: none
+Room status: none
 Memory: none
 ```
 
@@ -955,6 +1097,7 @@ Assistant name: Home Assistant
 Context entity: sensor.home_context_summary
 Identity entity: sensor.last_recognized_speaker
 Location: none
+Room status: none
 Memory: none
 ```
 
@@ -968,6 +1111,21 @@ Context entity: sensor.home_context_summary
 Identity entity: sensor.last_recognized_speaker
 Location entity: sensor.eric_current_area
 Location source: Bermuda or equivalent entity
+Room status: none
+Memory: none
+```
+
+### Public-Space Room Status Assistant
+
+A user configures:
+
+```text
+Assistant name: Home Assistant
+Context entity: sensor.home_context_summary
+Identity entity: sensor.last_recognized_speaker
+Location entity: sensor.current_person_area
+Room status entity: sensor.kitchen_room_status
+Room status source: LLM Vision, Frigate, occupancy sensor, or template entity
 Memory: none
 ```
 
@@ -980,6 +1138,10 @@ Assistant name: Personal Assistant
 Context entity: sensor.home_context_summary
 Identity entity: sensor.speaker_recognition_last_user
 Location entity: sensor.current_person_area
+Room status entities:
+  - sensor.kitchen_room_status
+  - sensor.living_room_status
+  - sensor.foyer_room_status
 Memory provider: Voice Assist Recall-compatible service
 Vision provider: event summary entity
 ```
@@ -990,7 +1152,7 @@ This advanced example should be documented as optional and not required.
 
 - Keep provider logic separate from Home Assistant conversation logic.
 - Keep prompt building separate from provider calls.
-- Keep identity, location, memory, context, and vision as adapters.
+- Keep identity, location, room status, memory, context, and vision as adapters.
 - Avoid hard dependencies on optional integrations.
 - Use Home Assistant async patterns.
 - Keep config entries and options clean.
@@ -1003,7 +1165,7 @@ This advanced example should be documented as optional and not required.
 
 The initial Codex implementation target was Phase 0 and Phase 1 only.
 
-That target is complete. Memory, recall, proposal, and event-summary work has since been added as optional adapters. Speaker recognition, native person-location calculation, native LLM Vision, camera analysis, provider fallback chains, multiple provider profiles, streaming, and direct memory writing remain out of scope until explicitly requested.
+That target is complete. Memory, recall, proposal, and event-summary work has since been added as optional adapters. Speaker recognition, native person-location calculation, native room-status generation, native LLM Vision, camera analysis, provider fallback chains, multiple provider profiles, streaming, and direct memory writing remain out of scope until explicitly requested.
 
 The initial implementation proved:
 
@@ -1016,7 +1178,7 @@ Prompt sent to OpenAI-compatible endpoint
 Response returned to Assist
 ```
 
-Future implementation should continue to preserve the same boundaries: optional adapters, no private household assumptions, no automatic memory writes, no native recognition/location engines, and no custom home-control parser when Home Assistant's Assist LLM tools are available.
+Future implementation should continue to preserve the same boundaries: optional adapters, no private household assumptions, no automatic memory writes, no native recognition/location/camera engines, no raw image analysis during normal conversation turns, and no custom home-control parser when Home Assistant's Assist LLM tools are available.
 
 ## Long-Term Vision
 
@@ -1030,9 +1192,10 @@ The integration should allow users to bring their own:
 - Home context.
 - Speaker identity source.
 - Person/room location source.
+- Public-space room status source.
 - Memory system.
 - Vision/event source.
 
 The maintainer's private setup should serve as an advanced test case, not the default behavior.
 
-The final goal is a flexible Home Assistant Assist conversation agent that feels aware of the home, aware of the speaker, aware of relevant room/location context, and able to use memory responsibly while remaining installable, understandable, and safe for community use.
+The final goal is a flexible Home Assistant Assist conversation agent that feels aware of the home, aware of the speaker, aware of relevant room/location context, aware of recent public-space room status when explicitly configured, and able to use memory responsibly while remaining installable, understandable, privacy-conscious, and safe for community use.
