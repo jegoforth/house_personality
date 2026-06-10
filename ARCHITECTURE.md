@@ -133,9 +133,12 @@ house_personality/
   ARCHITECTURE.md
   hacs.json
   LICENSE
+  scripts/
+    render_brand_icons.py
   custom_components/
     house_personality/
       __init__.py
+      icon.svg
       manifest.json
       const.py
       config_flow.py
@@ -146,6 +149,9 @@ house_personality/
       strings.json
       translations/
         en.json
+      brand/
+        icon.png
+        icon@2x.png
       providers/
         __init__.py
         base.py

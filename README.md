@@ -65,6 +65,8 @@ House Personality can be installed as a custom HACS integration.
 4. Restart Home Assistant.
 5. Add the integration from **Settings > Devices & services**.
 
+Home Assistant 2026.3 and newer can load local custom integration brand images from `custom_components/house_personality/brand/`. The source icon is kept at `custom_components/house_personality/icon.svg`, with generated PNG assets in the `brand/` directory.
+
 ## Manual Installation
 
 1. Copy `custom_components/house_personality` into your Home Assistant `custom_components` directory.
