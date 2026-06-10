@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">House Personality icon</title>
+  <desc id="desc">A white house-shaped chat bubble with light blue voice waveform accents on a dark background.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#20242b"/>
+      <stop offset="1" stop-color="#111419"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7fd7ff"/>
+      <stop offset="1" stop-color="#36aef4"/>
+    </linearGradient>
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#000000" flood-opacity="0.28"/>
+    </filter>
+  </defs>
+
+  <rect width="512" height="512" rx="76" fill="url(#bg)"/>
+
+  <g filter="url(#softShadow)" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <!-- House outline with chat-bubble tail -->
+    <path d="M113 236 L256 105 L399 236" stroke="#ffffff" stroke-width="31"/>
+    <path d="M149 230 V339 Q149 374 184 374 H207 V417 L256 374 H361 Q394 374 394 341 V230" stroke="#ffffff" stroke-width="31"/>
+    <path d="M357 163 V113 H389 V207" stroke="#ffffff" stroke-width="31"/>
+
+    <!-- Voice/personality waveform -->
+    <path d="M166 268 V292" stroke="#ffffff" stroke-width="18"/>
+    <path d="M198 253 V307" stroke="#ffffff" stroke-width="18"/>
+    <path d="M235 232 V328" stroke="url(#accent)" stroke-width="22"/>
+    <path d="M277 204 V356" stroke="url(#accent)" stroke-width="22"/>
+    <path d="M319 232 V328" stroke="url(#accent)" stroke-width="22"/>
+    <path d="M356 253 V307" stroke="#ffffff" stroke-width="18"/>
+    <path d="M388 268 V292" stroke="#ffffff" stroke-width="18"/>
+  </g>
+</svg>
