@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+No unreleased changes.
+
+## v0.3.0 - Context Contracts and Room Awareness
+
 - Added optional generic public-space room status entity context with stale-context and private-space guardrails.
 - Added local Home Assistant brand icon PNG assets generated from the source SVG.
 - Added optional generic location entity context with stale-context handling and GPS field filtering.
