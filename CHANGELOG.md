@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-No unreleased changes.
+- Added `house_personality.test_provider` response service for provider connectivity checks.
 
 ## v0.3.0 - Context Contracts and Room Awareness
 

@@ -49,3 +49,12 @@ reject_memory_proposal:
     reason:
       selector:
         text:
+
+test_provider:
+  name: Test provider
+  description: Send a minimal text-only request to the configured provider and return connectivity results.
+  fields:
+    message:
+      default: "Reply with exactly: ok"
+      selector:
+        text:

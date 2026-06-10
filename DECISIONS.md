@@ -145,6 +145,7 @@ Partially implemented.
 - Conversation policy tests cover tools-disabled and `tool_choice=none` behavior.
 - GitHub Actions validates JSON files, lightweight unit tests, Python compilation, and private-data scanning.
 - GitHub issue and pull request templates are present for eventual public feedback.
+- Provider test service is available for text-only provider connectivity checks.
 
 ### Phase 9: Public Release Readiness
 
@@ -225,6 +226,7 @@ The current working version should prove:
 - The configured agent appears as a selectable Assist conversation agent.
 - A user can configure an OpenAI-compatible endpoint.
 - A user can configure a model and personality prompt.
+- A user can test provider connectivity through `house_personality.test_provider`.
 - A simple Assist text request is sent to the provider.
 - The provider response is returned to Assist.
 - Optional context, identity, memory, recall, and event-summary sources can be configured.
@@ -238,7 +240,6 @@ The current working version should prove:
 
 Future work may add:
 
-- Provider test service.
 - Prompt preview service.
 - Better automated tests around provider tool-call handling.
 - Additional diagnostics and test hardening.

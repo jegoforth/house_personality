@@ -31,6 +31,7 @@ Implemented:
 - GitHub issue and pull request templates.
 - Public release support docs, examples, security notes, release checklist, and community post draft.
 - Generic context contracts for optional identity, location, room status, house context, memory, recall, and vision/event summary sources.
+- Provider test service.
 - Diagnostics with secret redaction.
 
 Still not implemented:
@@ -851,7 +852,6 @@ Future work:
 
 - Multiple provider profiles.
 - Optional local/cloud fallback provider.
-- Provider test service.
 - Streaming support if feasible.
 
 ### Phase 8: Diagnostics, Testing, and Hardening
@@ -870,6 +870,7 @@ Implemented:
 - GitHub issue templates.
 - GitHub pull request template.
 - GitHub validation workflow for JSON validation, unit tests, Python compilation, and private-data scanning.
+- Provider test service.
 
 Future work:
 
@@ -985,6 +986,7 @@ Acceptance Criteria:
 Implemented services:
 
 ```yaml
+house_personality.test_provider
 house_personality.create_memory_proposal
 house_personality.list_memory_proposals
 house_personality.approve_memory_proposal
@@ -994,7 +996,6 @@ house_personality.reject_memory_proposal
 Future services may include:
 
 ```yaml
-house_personality.test_provider
 house_personality.render_prompt_preview
 house_personality.reload_context
 house_personality.clear_session

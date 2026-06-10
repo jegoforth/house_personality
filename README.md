@@ -314,10 +314,21 @@ See [CONTEXT_CONTRACTS.md](CONTEXT_CONTRACTS.md) for privacy guidance specific t
 
 House Personality exposes these services:
 
+- `house_personality.test_provider`: Send a minimal text-only request to the configured provider and return connectivity results.
 - `house_personality.create_memory_proposal`: Create a pending memory proposal.
 - `house_personality.list_memory_proposals`: List pending proposals, or all proposals when `include_resolved` is true.
 - `house_personality.approve_memory_proposal`: Mark a proposal as approved without writing it anywhere else.
 - `house_personality.reject_memory_proposal`: Mark a proposal as rejected.
+
+Example provider test action:
+
+```yaml
+action: house_personality.test_provider
+data:
+  message: "Reply with exactly: ok"
+```
+
+Expected response data includes `success`, `model`, `base_url`, `latency_ms`, and either `response` or `error`.
 
 ## Testing
 
