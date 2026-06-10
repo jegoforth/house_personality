@@ -37,6 +37,7 @@ from .const import (
     CONF_RECALL_SERVICE_DOMAIN,
     CONF_RECALL_SERVICE_NAME,
     CONF_RESPONSE_FORMAT,
+    CONF_ROOM_STATUS_ENTITY,
     CONF_TEMPERATURE,
     CONF_TOOL_CHOICE,
     CONF_TOOLS_ENABLED,
@@ -263,6 +264,7 @@ def _config_schema(
             _optional_entity_key(defaults, CONF_CONTEXT_ENTITY): EntitySelector(),
             _optional_entity_key(defaults, CONF_IDENTITY_ENTITY): EntitySelector(),
             _optional_entity_key(defaults, CONF_LOCATION_ENTITY): EntitySelector(),
+            _optional_entity_key(defaults, CONF_ROOM_STATUS_ENTITY): EntitySelector(),
             _optional_entity_key(defaults, CONF_MEMORY_ENTITY): EntitySelector(),
             vol.Required(
                 CONF_RECALL_ENABLED,
@@ -327,6 +329,9 @@ def _normalize_user_input(user_input: dict[str, Any]) -> dict[str, Any]:
         CONF_CONTEXT_ENTITY: _clean_optional_text(user_input.get(CONF_CONTEXT_ENTITY)),
         CONF_IDENTITY_ENTITY: _clean_optional_text(user_input.get(CONF_IDENTITY_ENTITY)),
         CONF_LOCATION_ENTITY: _clean_optional_text(user_input.get(CONF_LOCATION_ENTITY)),
+        CONF_ROOM_STATUS_ENTITY: _clean_optional_text(
+            user_input.get(CONF_ROOM_STATUS_ENTITY)
+        ),
         CONF_MEMORY_ENTITY: _clean_optional_text(user_input.get(CONF_MEMORY_ENTITY)),
         CONF_RECALL_ENABLED: bool(user_input[CONF_RECALL_ENABLED]),
         CONF_RECALL_SERVICE_DOMAIN: user_input[CONF_RECALL_SERVICE_DOMAIN].strip(),

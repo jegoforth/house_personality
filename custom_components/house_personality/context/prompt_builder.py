@@ -14,6 +14,7 @@ class PromptContext:
     household_context: str | None = None
     speaker_identity: str | None = None
     location_context: str | None = None
+    room_status_context: str | None = None
     memory_context: str | None = None
     vision_context: str | None = None
 
@@ -60,6 +61,17 @@ def build_chat_messages(context: PromptContext) -> list[dict[str, str]]:
             }
         )
 
+    if context.room_status_context:
+        messages.append(
+            {
+                "role": "system",
+                "content": (
+                    "Optional public-space room status from the configured room status entity:\n"
+                    f"{context.room_status_context.strip()}"
+                ),
+            }
+        )
+
     if context.memory_context:
         messages.append(
             {
@@ -98,6 +110,7 @@ def describe_prompt_sections(context: PromptContext) -> dict[str, bool]:
         "household_context": bool(context.household_context),
         "speaker_identity": bool(context.speaker_identity),
         "location_context": bool(context.location_context),
+        "room_status_context": bool(context.room_status_context),
         "memory_context": bool(context.memory_context),
         "vision_context": bool(context.vision_context),
         "user_message": bool(context.user_message.strip()),

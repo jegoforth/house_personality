@@ -30,6 +30,7 @@ This project is intended to be reusable and community-friendly. It does not incl
   - optional context entity
   - optional identity entity
   - optional location entity
+  - optional public-space room status entity
   - optional memory entity
   - optional Voice Assist Recall service adapter
   - optional vision/event summary entity
@@ -38,6 +39,7 @@ This project is intended to be reusable and community-friendly. It does not incl
 - Passes Home Assistant's built-in Assist LLM tools to compatible providers so exposed entities can be queried or controlled.
 - Builds prompts from the configured personality prompt, optional entity context, optional speaker identity, optional memory/recall context, optional vision/event summary context, and current user message.
 - Consumes optional generic location context from a configured entity, including room/area context when another integration or helper provides it.
+- Consumes optional generic public-space room status context from a configured entity.
 - Returns friendly fallback responses when the provider fails.
 - Provides memory update proposal services for explicit review.
 - Provides diagnostics with secret redaction.
@@ -94,6 +96,7 @@ The UI config flow asks for:
 - **Context entity**: Optional entity whose state and attributes are included as home context.
 - **Identity entity**: Optional entity whose state is included as the likely speaker identity.
 - **Location entity**: Optional entity whose state and selected attributes provide person, home, room, or area location context.
+- **Room status entity**: Optional entity whose state and selected attributes provide public-space room status context.
 - **Memory entity**: Optional entity whose state and attributes are included as read-only memory context.
 - **Use Voice Assist Recall**: Optional read-only recall lookup through a prompt-safe Recall service.
 - **Recall service domain**: Service domain for the recall adapter. The current default is `conversation_memory`.
@@ -118,6 +121,7 @@ Home Assistant may show raw option keys for some selector-based fields. The fiel
 | `context_entity` | Optional helper or sensor with home context. |
 | `identity_entity` | Optional helper or sensor whose state is the current speaker, such as `Guest` or `Unknown`. |
 | `location_entity` | Optional helper or sensor with person, home, room, or area location context. |
+| `room_status_entity` | Optional helper or sensor with public-space room status context. |
 | `memory_entity` | Optional helper or sensor with read-only durable memory summary. |
 | `recall_enabled` | Enables optional read-only recall service lookup. |
 | `recall_service_domain` | Service domain for the recall adapter. |
@@ -196,6 +200,26 @@ attributes:
 
 If only Home Assistant GPS-backed person state is available, expose a broad summary such as `home`, `not_home`, or a zone. House Personality ignores raw latitude, longitude, and GPS accuracy fields by default.
 
+### Room Status Entity
+
+Use `room_status_entity` for generic public-space room status. House Personality reads this entity but does not analyze cameras, images, video, faces, or objects, and it does not require any specific vision or camera integration.
+
+Preferred state and attributes:
+
+```yaml
+state: Kitchen appears occupied.
+attributes:
+  summary: Kitchen appears occupied.
+  room: Kitchen
+  occupancy: occupied
+  confidence: 0.81
+  public_space: true
+  updated_at: "2026-06-10T09:30:00-04:00"
+  stale_after_seconds: 300
+```
+
+House Personality includes only prompt-safe fields and skips room status when `public_space` is explicitly false.
+
 ### Memory Entity
 
 Use `memory_entity` for a read-only summary of durable facts, preferences, or project notes. House Personality reads this content into the prompt but does not write back to it.
@@ -260,6 +284,8 @@ See [EXAMPLES.md](EXAMPLES.md) for generic configuration examples.
 House Personality sends the configured personality prompt, current Assist user message, and any configured context, identity, memory entity, relevant Voice Assist Recall data, or vision/event summary entity data to the configured provider. Context, memory, recall, and event summary content may contain personal home information. Identity entity state may identify a person if you configure it that way.
 
 Configured location context may reveal whether a person is home or which room they may be in. Use broad labels or local providers when that context should stay private.
+
+Configured room status context may reveal activity patterns in shared spaces. Avoid private-room camera context and avoid exposing raw camera URLs, image descriptions, face recognition output, or biometric details.
 
 House Personality does not analyze camera images or video. Vision/event context is read only from text summaries exposed by other integrations or helpers.
 
@@ -332,3 +358,4 @@ See [COMMUNITY_POST.md](COMMUNITY_POST.md) for a draft public announcement.
 - Phase 8: tests, diagnostics hardening, and release validation.
 - Phase 9: public release readiness. In progress.
 - Phase 10: optional generic location context. Partially implemented as single entity context.
+- Phase 11: optional public-space room status context. Partially implemented as single entity context.

@@ -18,6 +18,7 @@ from .const import (
     CONF_RECALL_LIMIT,
     CONF_RECALL_SERVICE_DOMAIN,
     CONF_RECALL_SERVICE_NAME,
+    CONF_ROOM_STATUS_ENTITY,
     CONF_VISION_ENTITY,
     CONF_VISION_ENABLED,
     DATA_PROPOSAL_STORE,
@@ -71,6 +72,7 @@ def _redact_config(values: dict[str, Any]) -> dict[str, Any]:
             CONF_IDENTITY_ENTITY,
             CONF_LOCATION_ENTITY,
             CONF_MEMORY_ENTITY,
+            CONF_ROOM_STATUS_ENTITY,
             CONF_VISION_ENTITY,
         }:
             redacted[key] = REDACTED if value else ""

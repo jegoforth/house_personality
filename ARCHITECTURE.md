@@ -2,7 +2,7 @@
 
 ## Current Implementation Status
 
-The integration currently implements Phases 0 through 6, current Home Assistant conversation entity compatibility for Assist tool calls, partial Phase 7 provider tuning, partial Phase 8 validation hardening, Phase 9 public-release documentation readiness, and partial Phase 10 generic location entity context.
+The integration currently implements Phases 0 through 6, current Home Assistant conversation entity compatibility for Assist tool calls, partial Phase 7 provider tuning, partial Phase 8 validation hardening, Phase 9 public-release documentation readiness, partial Phase 10 generic location entity context, and partial Phase 11 generic public-space room status context.
 
 Implemented:
 
@@ -20,6 +20,7 @@ Implemented:
 - Optional entity context.
 - Optional entity identity.
 - Optional generic location entity context.
+- Optional generic public-space room status entity context.
 - Optional read-only memory entity.
 - Optional read-only Voice Assist Recall-compatible service adapter.
 - Memory proposal services with explicit approve/reject workflow.
@@ -36,7 +37,7 @@ Still not implemented:
 
 - Speaker recognition.
 - Native person/room location calculation.
-- Native public-space room status integration.
+- Native public-space room status calculation.
 - Direct memory writing.
 - Direct writes to `house_memory.json`.
 - LLM Vision native integration.
@@ -182,6 +183,9 @@ house_personality/
         __init__.py
         base.py
         entity_vision.py
+      room_status/
+        __init__.py
+        entity_room_status.py
 ```
 
 There must be only one Home Assistant integration under `custom_components/`.
@@ -937,7 +941,7 @@ Acceptance Criteria:
 
 ### Phase 11: Public-Space Room Status Context
 
-Status: Planned.
+Status: Partially implemented as single generic room status entity context.
 
 Goal: Add optional public-space room status context from Home Assistant entities or services without making House Personality responsible for camera analysis, surveillance, or image processing.
 
@@ -954,14 +958,14 @@ Examples of compatible providers:
 
 Deliverables:
 
-- Room status provider interface.
-- Entity-based room status adapter.
-- Optional room-status entity configuration.
-- Optional support for multiple public-space room status entities.
-- Staleness/max-age handling.
-- Privacy guardrails and documentation for public-space-only camera-derived context.
-- Prompt builder support for room status context.
-- Debug logs showing room status included/skipped.
+- Room status provider interface. Future work if multiple adapters are added.
+- Entity-based room status adapter. Implemented for one configured entity.
+- Optional room-status entity configuration. Implemented as `room_status_entity`.
+- Optional support for multiple public-space room status entities. Future work.
+- Staleness/max-age handling. Implemented for `updated_at`, `observed_at`, `expires_at`, and `stale_after_seconds`.
+- Privacy guardrails and documentation for public-space-only camera-derived context. Implemented for explicit `public_space: false`.
+- Prompt builder support for room status context. Implemented.
+- Debug logs showing room status included/skipped. Implemented.
 - Documentation examples for triggered snapshot summaries and generic room-status entities.
 
 Acceptance Criteria:

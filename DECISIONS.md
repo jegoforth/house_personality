@@ -6,7 +6,7 @@ This file captures current project decisions for `house_personality` so developm
 
 Build a reusable, HACS-friendly Home Assistant custom integration that provides a configurable personality, context, memory, event-summary, and Home Assistant Assist conversation layer.
 
-The implementation has moved beyond the initial Phase 0/1 MVP. Phases 0 through 6 are implemented as small optional adapters, the conversation agent advertises Home Assistant control support, Phase 7 provider tuning is partially implemented, Phase 8 validation hardening is partially implemented, Phase 9 public-release documentation is in progress, and Phase 10 generic location entity context is partially implemented.
+The implementation has moved beyond the initial Phase 0/1 MVP. Phases 0 through 6 are implemented as small optional adapters, the conversation agent advertises Home Assistant control support, Phase 7 provider tuning is partially implemented, Phase 8 validation hardening is partially implemented, Phase 9 public-release documentation is in progress, Phase 10 generic location entity context is partially implemented, and Phase 11 generic public-space room status context is partially implemented.
 
 The next work should focus on context-source compatibility, public-release review, remaining validation gaps, and any release packaging needed before broader public feedback.
 
@@ -171,7 +171,7 @@ Partially implemented as single generic location entity context.
 
 ### Phase 11: Public-Space Room Status Context
 
-Planned.
+Partially implemented as single generic room status entity context.
 
 - Room status context should be optional.
 - House Personality should consume generic public-space room status summaries from entities or services.
@@ -179,6 +179,7 @@ Planned.
 - Room status context should include staleness, confidence, and privacy guidance.
 - House Personality should not analyze images, video, faces, objects, or camera streams itself.
 - Documentation should discourage private-space camera-derived context.
+- The current implementation reads one optional `room_status_entity`, includes safe contract fields, skips stale context, and skips context marked `public_space: false`.
 
 ## Out of Scope Until Explicitly Requested
 
@@ -188,6 +189,7 @@ Do not implement these next unless requested:
 - Person location calculation.
 - Raw GPS-to-room mapping.
 - Room status calculation.
+- Camera-derived room status calculation.
 - Memory writing.
 - Direct writes to `house_memory.json`.
 - LLM Vision native integration.

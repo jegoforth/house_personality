@@ -32,6 +32,7 @@ from .const import (
     CONF_RECALL_SERVICE_DOMAIN,
     CONF_RECALL_SERVICE_NAME,
     CONF_RESPONSE_FORMAT,
+    CONF_ROOM_STATUS_ENTITY,
     CONF_TEMPERATURE,
     CONF_TOOL_CHOICE,
     CONF_TOOLS_ENABLED,
@@ -52,6 +53,7 @@ from .const import (
     DEFAULT_RECALL_SERVICE_DOMAIN,
     DEFAULT_RECALL_SERVICE_NAME,
     DEFAULT_RESPONSE_FORMAT,
+    DEFAULT_ROOM_STATUS_MAX_CHARS,
     DEFAULT_TEMPERATURE,
     DEFAULT_TIMEOUT,
     DEFAULT_TOOL_CHOICE,
@@ -70,6 +72,7 @@ from .identity import async_get_entity_identity
 from .location import async_get_entity_location
 from .memory import async_get_entity_memory, async_get_recall_memory
 from .providers import OpenAICompatibleProvider, ProviderError
+from .room_status import async_get_entity_room_status
 from .vision import async_get_entity_vision_context
 
 _LOGGER = logging.getLogger(__name__)
@@ -210,6 +213,11 @@ class HousePersonalityConversationAgent(conversation.ConversationEntity):
             values.get(CONF_LOCATION_ENTITY),
             max_chars=DEFAULT_LOCATION_MAX_CHARS,
         )
+        room_status_result = await async_get_entity_room_status(
+            self._hass,
+            values.get(CONF_ROOM_STATUS_ENTITY),
+            max_chars=DEFAULT_ROOM_STATUS_MAX_CHARS,
+        )
         memory_result = await async_get_entity_memory(
             self._hass,
             values.get(CONF_MEMORY_ENTITY),
@@ -253,6 +261,7 @@ class HousePersonalityConversationAgent(conversation.ConversationEntity):
             household_context=context_result.content,
             speaker_identity=identity_result.speaker,
             location_context=location_result.content,
+            room_status_context=room_status_result.content,
             memory_context=memory_context,
             vision_context=vision_result.content,
         )
@@ -280,6 +289,12 @@ class HousePersonalityConversationAgent(conversation.ConversationEntity):
                 values.get(CONF_LOCATION_ENTITY) or None,
                 location_result.included,
                 location_result.reason,
+            )
+            _LOGGER.debug(
+                "House Personality room status entity status: entity=%s included=%s reason=%s",
+                values.get(CONF_ROOM_STATUS_ENTITY) or None,
+                room_status_result.included,
+                room_status_result.reason,
             )
             _LOGGER.debug(
                 "House Personality memory entity status: entity=%s included=%s reason=%s",

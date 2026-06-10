@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added optional generic public-space room status entity context with stale-context and private-space guardrails.
 - Added local Home Assistant brand icon PNG assets generated from the source SVG.
 - Added optional generic location entity context with stale-context handling and GPS field filtering.
 - Added lightweight unit tests for prompt assembly, provider payload construction, diagnostics redaction, and no-tools conversation policy.
