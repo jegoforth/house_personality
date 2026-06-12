@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v0.3.1 - Provider Test Service
 
 - Added `house_personality.test_provider` response service for provider connectivity checks.
 

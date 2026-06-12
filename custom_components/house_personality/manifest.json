@@ -6,5 +6,5 @@
   "documentation": "https://github.com/jegoforth/house_personality",
   "issue_tracker": "https://github.com/jegoforth/house_personality/issues",
   "iot_class": "cloud_polling",
-  "version": "0.3.0"
+  "version": "0.3.1"
 }

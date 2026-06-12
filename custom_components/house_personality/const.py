@@ -6,7 +6,7 @@ from homeassistant.const import CONF_API_KEY, CONF_MODEL, CONF_TIMEOUT
 
 DOMAIN = "house_personality"
 NAME = "House Personality"
-VERSION = "0.3.0"
+VERSION = "0.3.1"
 
 ATTR_CONTENT = "content"
 ATTR_CREATED_AT = "created_at"
