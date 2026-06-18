@@ -22,6 +22,14 @@ async def async_get_entity_identity(
     if state is None:
         return IdentityResult(None, False, "missing")
 
+    accepted = state.attributes.get("accepted")
+    if accepted is not None and accepted is not True:
+        return IdentityResult(
+            None,
+            False,
+            state.attributes.get("rejection_reason") or "not_accepted",
+        )
+
     if state.state in {STATE_UNKNOWN, STATE_UNAVAILABLE}:
         return IdentityResult(None, False, state.state)
 

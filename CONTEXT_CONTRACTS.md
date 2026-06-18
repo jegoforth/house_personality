@@ -69,7 +69,28 @@ Example states:
 entity_id: sensor.current_speaker
 state: "Guest"
 attributes:
+  accepted: true
   confidence: 0.76
+  best_score: 0.76
+  score_gap: 0.22
+  updated_at: "2026-06-09T14:31:12-04:00"
+  stale_after_seconds: 120
+  source: "speaker_identity_provider"
+```
+
+Rejected or ambiguous identity example:
+
+```yaml
+entity_id: sensor.current_speaker
+state: "unknown"
+attributes:
+  accepted: false
+  rejection_reason: "low_score_gap"
+  best_match: "Person A"
+  best_score: 0.53
+  second_match: "Person B"
+  second_score: 0.46
+  score_gap: 0.07
   updated_at: "2026-06-09T14:31:12-04:00"
   stale_after_seconds: 120
   source: "speaker_identity_provider"
@@ -86,13 +107,16 @@ attributes:
 Recommended behavior:
 
 - Use `Unknown` when identity is not reliable.
+- If a provider emits an `accepted` attribute, set it to `true` only when the match passed the provider's confidence and margin checks.
+- Preserve diagnostic candidate fields on rejected matches so thresholds and sample quality can be evaluated without injecting the identity as fact.
 - Do not include private biographical details in the identity entity.
 - Do not put assistant personality instructions here.
 - Keep household-specific names private in the user's own Home Assistant instance.
 
 House Personality use:
 
-- May include the state as speaker context.
+- May include the state as speaker context when the source is a simple helper.
+- Should ignore rich speaker-recognition style entities when `accepted` is present and not `true`.
 - May pass speaker context to optional recall lookup.
 - Should not require any speaker-recognition integration.
 
