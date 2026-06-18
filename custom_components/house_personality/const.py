@@ -6,7 +6,7 @@ from homeassistant.const import CONF_API_KEY, CONF_MODEL, CONF_TIMEOUT
 
 DOMAIN = "house_personality"
 NAME = "House Personality"
-VERSION = "0.3.1"
+VERSION = "0.3.2"
 
 ATTR_CONTENT = "content"
 ATTR_CREATED_AT = "created_at"
@@ -53,6 +53,7 @@ DEFAULT_BASE_URL = "https://api.openai.com/v1"
 DEFAULT_CONTEXT_MAX_CHARS = 4000
 DEFAULT_IDENTITY_MAX_CHARS = 500
 DEFAULT_LOCATION_MAX_CHARS = 1200
+DEFAULT_HOUSE_MEMORY_ENTITY = "sensor.house_memory_summary"
 DEFAULT_MEMORY_MAX_CHARS = 6000
 DEFAULT_MODEL = "gpt-4o-mini"
 DEFAULT_MAX_TOKENS = 0

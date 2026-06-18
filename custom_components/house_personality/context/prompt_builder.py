@@ -15,6 +15,7 @@ class PromptContext:
     speaker_identity: str | None = None
     location_context: str | None = None
     room_status_context: str | None = None
+    house_memory_summary: str | None = None
     memory_context: str | None = None
     vision_context: str | None = None
 
@@ -72,6 +73,14 @@ def build_chat_messages(context: PromptContext) -> list[dict[str, str]]:
             }
         )
 
+    if context.house_memory_summary:
+        messages.append(
+            {
+                "role": "system",
+                "content": context.house_memory_summary.strip(),
+            }
+        )
+
     if context.memory_context:
         messages.append(
             {
@@ -111,6 +120,7 @@ def describe_prompt_sections(context: PromptContext) -> dict[str, bool]:
         "speaker_identity": bool(context.speaker_identity),
         "location_context": bool(context.location_context),
         "room_status_context": bool(context.room_status_context),
+        "house_memory_summary": bool(context.house_memory_summary),
         "memory_context": bool(context.memory_context),
         "vision_context": bool(context.vision_context),
         "user_message": bool(context.user_message.strip()),

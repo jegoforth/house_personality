@@ -26,6 +26,7 @@ class PromptBuilderTests(unittest.TestCase):
                 speaker_identity="Guest",
                 location_context="Person A may be in Kitchen.",
                 room_status_context="Kitchen appears occupied.",
+                house_memory_summary="House memory text",
                 memory_context="Memory text",
                 vision_context="Event text",
             )
@@ -34,15 +35,26 @@ class PromptBuilderTests(unittest.TestCase):
 
         self.assertEqual(
             [message["role"] for message in messages],
-            ["system", "system", "system", "system", "system", "system", "system", "user"],
+            [
+                "system",
+                "system",
+                "system",
+                "system",
+                "system",
+                "system",
+                "system",
+                "system",
+                "user",
+            ],
         )
         self.assertEqual(messages[0]["content"], "Be concise.")
         self.assertIn("configured context entity", messages[1]["content"])
         self.assertIn("configured identity entity", messages[2]["content"])
         self.assertIn("configured location entity", messages[3]["content"])
         self.assertIn("configured room status entity", messages[4]["content"])
-        self.assertIn("configured memory entity", messages[5]["content"])
-        self.assertIn("configured entity", messages[6]["content"])
+        self.assertEqual(messages[5]["content"], "House memory text")
+        self.assertIn("configured memory entity", messages[6]["content"])
+        self.assertIn("configured entity", messages[7]["content"])
         self.assertEqual(messages[-1]["content"], "What changed?")
         self.assertEqual(
             describe_prompt_sections(context),
@@ -52,6 +64,7 @@ class PromptBuilderTests(unittest.TestCase):
                 "speaker_identity": True,
                 "location_context": True,
                 "room_status_context": True,
+                "house_memory_summary": True,
                 "memory_context": True,
                 "vision_context": True,
                 "user_message": True,

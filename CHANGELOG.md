@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.3.2 - House Memory Summary Prompt Context
+
+- Added direct House Memory Summary prompt injection from `sensor.house_memory_summary` attributes.
+- Added prompt instructions to treat injected house memory as authoritative and avoid live entity lookup for that sensor.
+- Added room privacy guardrails that rely only on explicit `rooms_summary` privacy fields and `privacy_rules`.
+- Added tests for House Memory Summary prompt injection and personality prompt separation.
+
 ## v0.3.1 - Provider Test Service
 
 - Added `house_personality.test_provider` response service for provider connectivity checks.

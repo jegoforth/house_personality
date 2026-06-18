@@ -41,6 +41,7 @@ from .const import (
     DEFAULT_ASSISTANT_NAME,
     DEFAULT_BASE_URL,
     DEFAULT_CONTEXT_MAX_CHARS,
+    DEFAULT_HOUSE_MEMORY_ENTITY,
     DEFAULT_IDENTITY_MAX_CHARS,
     DEFAULT_LOCATION_MAX_CHARS,
     DEFAULT_MAX_TOKENS,
@@ -63,6 +64,7 @@ from .const import (
     FRIENDLY_PROVIDER_ERROR,
 )
 from .context.entity_context import async_get_entity_context
+from .context.house_memory_summary import get_house_memory_summary_context
 from .context.prompt_builder import (
     PromptContext,
     build_chat_messages,
@@ -218,6 +220,10 @@ class HousePersonalityConversationAgent(conversation.ConversationEntity):
             values.get(CONF_ROOM_STATUS_ENTITY),
             max_chars=DEFAULT_ROOM_STATUS_MAX_CHARS,
         )
+        house_memory_summary_result = get_house_memory_summary_context(
+            self._hass,
+            DEFAULT_HOUSE_MEMORY_ENTITY,
+        )
         memory_result = await async_get_entity_memory(
             self._hass,
             values.get(CONF_MEMORY_ENTITY),
@@ -262,6 +268,7 @@ class HousePersonalityConversationAgent(conversation.ConversationEntity):
             speaker_identity=identity_result.speaker,
             location_context=location_result.content,
             room_status_context=room_status_result.content,
+            house_memory_summary=house_memory_summary_result.content,
             memory_context=memory_context,
             vision_context=vision_result.content,
         )
@@ -295,6 +302,11 @@ class HousePersonalityConversationAgent(conversation.ConversationEntity):
                 values.get(CONF_ROOM_STATUS_ENTITY) or None,
                 room_status_result.included,
                 room_status_result.reason,
+            )
+            _LOGGER.debug(
+                "House Personality House Memory Summary status: included=%s reason=%s",
+                house_memory_summary_result.included,
+                house_memory_summary_result.reason,
             )
             _LOGGER.debug(
                 "House Personality memory entity status: entity=%s included=%s reason=%s",
